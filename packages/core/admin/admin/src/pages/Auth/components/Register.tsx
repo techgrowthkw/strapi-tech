@@ -55,10 +55,15 @@ const REGISTER_USER_SCHEMA = yup.object().shape({
   lastname: yup.string().nullable(),
   password: yup
     .string()
-    .min(8, translatedErrors.minLength)
-    .matches(/[a-z]/, 'components.Input.error.contain.lowercase')
-    .matches(/[A-Z]/, 'components.Input.error.contain.uppercase')
-    .matches(/\d/, 'components.Input.error.contain.number')
+    // .min(15, translatedErrors.minLength)
+    .min(15)
+    .matches(/[a-z]/, 'must contain at least one lowercase character')  // lowercase
+    .matches(/[A-Z]/, 'must contain at least one uppercase character')  // uppercase
+    .matches(/\d/, 'must contain at least one number')  // number
+    .matches(/[!@#$%^&*(),.?":{}|<>]/, 'must contain at least one special character')
+    // .matches(/[a-z]/, 'components.Input.error.contain.lowercase')
+    // .matches(/[A-Z]/, 'components.Input.error.contain.uppercase')
+    // .matches(/\d/, 'components.Input.error.contain.number')
     .required(translatedErrors.required),
   confirmPassword: yup
     .string()
@@ -72,10 +77,15 @@ const REGISTER_ADMIN_SCHEMA = yup.object().shape({
   lastname: yup.string().nullable(),
   password: yup
     .string()
-    .min(8, translatedErrors.minLength)
-    .matches(/[a-z]/, 'components.Input.error.contain.lowercase')
-    .matches(/[A-Z]/, 'components.Input.error.contain.uppercase')
-    .matches(/\d/, 'components.Input.error.contain.number')
+    // .min(8, translatedErrors.minLength)
+    // .matches(/[a-z]/, 'components.Input.error.contain.lowercase')
+    // .matches(/[A-Z]/, 'components.Input.error.contain.uppercase')
+    // .matches(/\d/, 'components.Input.error.contain.number')
+    .min(15)
+    .matches(/[a-z]/, 'must contain at least one lowercase character')  // lowercase
+    .matches(/[A-Z]/, 'must contain at least one uppercase character')  // uppercase
+    .matches(/\d/, 'must contain at least one number')  // number
+    .matches(/[!@#$%^&*(),.?":{}|<>]/, 'must contain at least one special character')
     .required(translatedErrors.required),
   email: yup
     .string()
@@ -314,7 +324,7 @@ const Register = ({ hasAdmin }: RegisterProps) => {
               setSubmitCount(submitCount + 1);
             }
           }}
-          validateOnChange={false}
+          validateOnChange={true}
         >
           {({ values, errors, handleChange }) => {
             return (

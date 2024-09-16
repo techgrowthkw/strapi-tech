@@ -59,13 +59,22 @@ export default {
     },
     (ctx: Context) => {
       const { user } = ctx.state as { user: AdminUser };
-
-      ctx.body = {
-        data: {
-          token: getService('token').createJwtToken(user),
-          user: getService('user').sanitizeUser(ctx.state.user), // TODO: fetch more detailed info
-        },
-      } satisfies Login.Response;
+      if(user.OTP_code === null){
+        ctx.body = {
+          data: {
+            token: null,
+            user: getService('user').sanitizeUser(ctx.state.user), // TODO: fetch more detailed info
+          },
+        } satisfies Login.Response;
+      }else{
+        ctx.body = {
+          data: {
+            token: getService('token').createJwtToken(user),
+            user: getService('user').sanitizeUser(ctx.state.user), // TODO: fetch more detailed info
+          },
+        } satisfies Login.Response;
+      }
+      
     },
   ]),
 

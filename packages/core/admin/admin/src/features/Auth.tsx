@@ -106,7 +106,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, [dispatch, user]);
 
-  /**
+  /** 
    * Backwards compat – store the token in the session storage
    *
    * TODO: V5 remove this and only explicitly set it when required.

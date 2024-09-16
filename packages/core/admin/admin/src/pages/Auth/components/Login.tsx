@@ -62,10 +62,17 @@ const Login = ({ children }: LoginProps) => {
 
       setApiError(message);
     } else {
+      const user = res.data.user
+      if(user.OTP_code === null){
+        push('/auth/two-factor-auth');
+          return;
+      }
+      console.log("userdata", res.data)
       const redirectTo = query.get('redirectTo');
       const redirectUrl = redirectTo ? decodeURIComponent(redirectTo) : '/';
 
       push(redirectUrl);
+    
     }
   };
 
