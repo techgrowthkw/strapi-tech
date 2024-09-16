@@ -36,6 +36,13 @@ export default {
       configurable: false,
       required: false,
     },
+    OTP_code: {
+      type: 'string',
+      unique: false,
+      configurable: false,
+      required: false,
+      default: null
+    },
     email: {
       type: 'email',
       minLength: 6,

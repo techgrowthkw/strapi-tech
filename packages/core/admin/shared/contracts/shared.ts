@@ -28,6 +28,7 @@ export interface AdminUser extends Entity {
   registrationToken?: string | null;
   isActive: boolean;
   roles: AdminRole[];
+  OTP_code?:string;
   blocked: boolean;
   preferedLanguage?: string;
 }

@@ -89,7 +89,7 @@ const updateById = async (
       throw new ValidationError('You must have at least one user with super admin role.');
     }
   }
-
+ 
   // hash password if a new one is sent
   if (_.has(attributes, 'password')) {
     const hashedPassword = await getService('auth').hashPassword(attributes.password!);

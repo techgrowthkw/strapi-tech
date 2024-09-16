@@ -33,7 +33,7 @@ const LOGIN_SCHEMA = yup.object().shape({
   rememberMe: yup.bool().nullable(),
 });
 
-const Login = ({ children }: LoginProps) => {
+const TwoFactorAuth = ({ children }: LoginProps) => {
   const [apiError, setApiError] = React.useState<string>();
   const [passwordShown, setPasswordShown] = React.useState(false);
   const { formatMessage } = useIntl();
@@ -54,11 +54,6 @@ const Login = ({ children }: LoginProps) => {
         push('/auth/oops');
         return;
       }
-
-      // if (camelCase(message).toLowerCase() === 'otpisnull') {
-      //   push('/auth/two-factor-auth');
-      //   return;
-      // }
 
       setApiError(message);
     } else {
@@ -82,7 +77,9 @@ const Login = ({ children }: LoginProps) => {
                   defaultMessage: 'Welcome!',
                 })}
               </Typography>
+              <p>2fa</p>
             </Box>
+            <p>hello world</p>
             <Box paddingBottom={7}>
               <Typography variant="epsilon" textColor="neutral600">
                 {formatMessage({
@@ -216,5 +213,5 @@ const PasswordInput = styled(TextInput)`
   }
 `;
 
-export { Login };
+export { TwoFactorAuth };
 export type { LoginProps };
