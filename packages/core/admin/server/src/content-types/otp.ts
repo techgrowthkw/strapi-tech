@@ -6,13 +6,20 @@ export default {
   collectionName: 'otp',
   info: {
     name: 'otp',
-    description: 'OTP model',
+    description: '',
     singularName: 'otp',
     pluralName: 'otps',
     displayName: 'otp',
   },
   options: {},
-  pluginOptions: {},
+  pluginOptions: {
+    'content-manager': {
+      visible: false,
+    },
+    'content-type-builder': {
+      visible: false,
+    },
+  },
   attributes: {
     user: {
       type: 'relation',
@@ -27,7 +34,9 @@ export default {
     },
     createdAt: {
       type: 'datetime',
+      configurable: false,
       default: new Date(),
+      required: true,
     },
   },
 };

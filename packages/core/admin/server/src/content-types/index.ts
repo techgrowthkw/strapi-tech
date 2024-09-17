@@ -5,6 +5,8 @@ import apiToken from './api-token';
 import apiTokenPermission from './api-token-permission';
 import transferToken from './transfer-token';
 import transferTokenPermission from './transfer-token-permission';
+import otp from './otp'
+import passwordHistory from './password-history'
 
 export default {
   permission: { schema: Permission },
@@ -14,4 +16,6 @@ export default {
   'api-token-permission': { schema: apiTokenPermission },
   'transfer-token': { schema: transferToken },
   'transfer-token-permission': { schema: transferTokenPermission },
+  otp: {schema : otp},
+  'password-history': {schema : passwordHistory}
 };

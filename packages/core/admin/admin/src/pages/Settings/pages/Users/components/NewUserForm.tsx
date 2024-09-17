@@ -172,7 +172,7 @@ const ModalForm = ({ onToggle }: ModalFormProps) => {
         {({ errors, handleChange, values, isSubmitting }) => {
           return (
             <Form>
-              <ModalBody>
+              <ModalBody> 
                 <Flex direction="column" alignItems="stretch" gap={6}>
                   {currentStep !== 'create' && <MagicLink registrationToken={registrationToken} />}
                   <Box>

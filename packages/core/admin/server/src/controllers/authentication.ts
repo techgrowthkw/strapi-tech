@@ -13,13 +13,14 @@ import {
   validateRenewTokenInput,
 } from '../validation/authentication';
 
-import type {
+import type { 
   ForgotPassword,
   Login,
   Register,
   RegistrationInfo,
   RenewToken,
   ResetPassword,
+  verifyOtp
 } from '../../../shared/contracts/authentication';
 import { AdminUser } from '../../../shared/contracts/shared';
 
@@ -56,25 +57,45 @@ export default {
 
         return next();
       })(ctx, next);
-    },
-    (ctx: Context) => {
+    }, 
+   async (ctx: Context) => {
       const { user } = ctx.state as { user: AdminUser };
-      if(user.OTP_code === null){
-        ctx.body = {
-          data: {
-            token: null,
-            user: getService('user').sanitizeUser(ctx.state.user), // TODO: fetch more detailed info
-          },
-        } satisfies Login.Response;
-      }else{
-        ctx.body = {
-          data: {
-            token: getService('token').createJwtToken(user),
-            user: getService('user').sanitizeUser(ctx.state.user), // TODO: fetch more detailed info
-          },
-        } satisfies Login.Response;
+      // if(user.otp === null){
+      //   ctx.body = {
+      //     data: {
+      //       token: null,
+      //       user: getService('user').sanitizeUser(ctx.state.user), // TODO: fetch more detailed info
+      //     },
+      //   } satisfies Login.Response;
+      // }else{
+      //   ctx.body = {
+      //     data: {
+      //       token: getService('token').createJwtToken(user),
+      //       user: getService('user').sanitizeUser(ctx.state.user), // TODO: fetch more detailed info
+      //     },
+      //   } satisfies Login.Response;
+      // }
+      let tokeninfo = null
+      // let adminUser = strapi.db.query("admin::user").findOne({
+      //   select: [],
+      //   where: { id: user.id},
+      //   orderBy: {},
+      //   populate: {}
+      // });
+      const isSuperAdmin = await getService('user').isLastSuperAdminUser(user.id)
+   
+      if(isSuperAdmin === true ||  user.isVerified){
+        tokeninfo = getService('token').createJwtToken(user) 
       }
       
+      
+      ctx.body = {
+            data: {
+              token: tokeninfo ,
+              tokenTemp: !user.isVerified? getService('token').createJwtToken(user) : null,
+              user: getService('user').sanitizeUser(ctx.state.user), // TODO: fetch more detailed info
+            },
+          } satisfies Login.Response;
     },
   ]),
 
@@ -117,10 +138,14 @@ export default {
 
     const user = await getService('user').register(input);
 
+    // send email here
     ctx.body = {
       data: {
-        token: getService('token').createJwtToken(user),
+        // token:  getService('token').createJwtToken(user),
+        token: user.isVerified? getService('token').createJwtToken(user) :  null,
+        tokenTemp: !user.isVerified? getService('token').createJwtToken(user) : null,
         user: getService('user').sanitizeUser(user),
+      
       },
     } satisfies Register.Response;
   },
@@ -148,8 +173,12 @@ export default {
       ...input,
       registrationToken: null,
       isActive: true,
+      isVerified:false,
+      otp: '123',
       roles: superAdminRole ? [superAdminRole.id] : [],
-    });
+    }); 
+
+    // const createdRecord =  await ;
 
     strapi.telemetry.send('didCreateFirstAdmin');
 
@@ -157,8 +186,32 @@ export default {
       data: {
         token: getService('token').createJwtToken(user),
         user: getService('user').sanitizeUser(user),
+        // record: getService('user').createOtpRecord(user.id)
       },
     };
+    // ctx.body = {
+    //   data: {
+    //     token: null,
+    //     user: getService('user').sanitizeUser(user),
+    //     record: createdRecord
+    //   },
+    // };
+
+  },
+
+  async verifyOtp(ctx: Context){
+    const input = ctx.request.body as verifyOtp.Request['body'];
+
+    await validateResetPasswordInput(input);
+
+    // const user = await getService('auth').resetPassword(input);
+
+    // ctx.body = {
+    //   data: {
+    //     token: getService('token').createJwtToken(user),
+    //     user: getService('user').sanitizeUser(user),
+    //   },
+    // } satisfies verifyOtp.Response;
   },
 
   async forgotPassword(ctx: Context) {

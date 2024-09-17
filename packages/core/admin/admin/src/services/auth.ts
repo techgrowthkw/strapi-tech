@@ -6,6 +6,7 @@ import {
   type RegisterAdmin,
   type Register,
   type RegistrationInfo,
+  type verifyOtp,
   ForgotPassword,
 } from '../../../shared/contracts/authentication';
 import { GetProviders, IsSSOLocked } from '../../../shared/contracts/providers';
@@ -67,6 +68,17 @@ const authService = adminApi.injectEndpoints({
         method: 'POST',
         url: '/admin/logout',
       }),
+    }),
+    verifyOtp: builder.mutation<verifyOtp.Response['data'], verifyOtp.Request['body']>({
+      query: (body) => ({
+        method: 'POST',
+        url: '/admin/verifyOtp',
+        data: body,
+      }),
+      transformResponse(res: verifyOtp.Response) {
+        return res.data;
+      },
+      invalidatesTags: ['Me'],
     }),
     resetPassword: builder.mutation<ResetPassword.Response['data'], ResetPassword.Request['body']>({
       query: (body) => ({
@@ -180,6 +192,7 @@ const {
   useLoginMutation,
   useRenewTokenMutation,
   useLogoutMutation,
+  useVerifyOtpMutation,
   useUpdateMeMutation,
   useResetPasswordMutation,
   useRegisterAdminMutation,
@@ -198,6 +211,7 @@ export {
   useLoginMutation,
   useRenewTokenMutation,
   useLogoutMutation,
+  useVerifyOtpMutation,
   useUpdateMeMutation,
   useResetPasswordMutation,
   useRegisterAdminMutation,

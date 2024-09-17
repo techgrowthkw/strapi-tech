@@ -40,7 +40,7 @@ const sanitizeUser = (user: AdminUser): SanitizedAdminUser => {
  */
 const create = async (
   // isActive is added in the controller, it's not sent by the API.
-  attributes: Partial<AdminUserCreationPayload> & { isActive?: true }
+  attributes: Partial<AdminUserCreationPayload> & { isActive?: true } & {isVerified?: false} & {otp?: string}
 ): Promise<AdminUser> => {
   const userInfo = {
     registrationToken: getService('token').createToken(),
@@ -144,6 +144,22 @@ const resetPasswordByEmail = async (email: string, password: string) => {
   await updateById(user.id, { password });
 };
 
+
+/**
+ * Reset a user password by email. (Used in admin:reset CLI)
+ * @param email - user email
+ * @param password - new password
+ */
+// const createOtpRecord = async (id: Entity.ID) => {
+//    await strapi.query('admin::otp').create({
+//     data: {
+//       // createdAt: new Date(),
+//       user: id, // Reference to the admin_user ID
+//       otp:123
+//     }
+//   });
+// };
+
 /**
  * Check if a user is the last super admin
  * @param userId user's id to look for
@@ -207,6 +223,9 @@ const register = async ({
     lastname: userInfo.lastname,
     registrationToken: null,
     isActive: true,
+    otp: '123',
+    // isActive: true,
+
   });
 };
 
@@ -383,4 +402,6 @@ export default {
   displayWarningIfUsersDontHaveRole,
   resetPasswordByEmail,
   getLanguagesInUse,
+  isLastSuperAdminUser
+  // createOtpRecord
 };

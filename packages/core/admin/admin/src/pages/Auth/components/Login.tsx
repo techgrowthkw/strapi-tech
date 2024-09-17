@@ -55,16 +55,19 @@ const Login = ({ children }: LoginProps) => {
         return;
       }
 
-      // if (camelCase(message).toLowerCase() === 'otpisnull') {
-      //   push('/auth/two-factor-auth');
+      // if (camelCase(message).toLowerCase() === 'usernotverified') {
+
+      //   push(`/auth/two-factor-auth?token=1`);
       //   return;
       // }
 
       setApiError(message);
     } else {
       const user = res.data.user
-      if(user.OTP_code === null){
-        push('/auth/two-factor-auth');
+      const tokentemp = res.data.tokenTemp
+      if(!user.isVerified){
+        // otp req
+        push(`/auth/two-factor-auth?info=${tokentemp}`);
         return;
       }
       console.log("userdata", res.data)
