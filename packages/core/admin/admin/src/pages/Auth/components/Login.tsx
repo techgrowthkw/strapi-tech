@@ -65,7 +65,7 @@ const Login = ({ children }: LoginProps) => {
       const user = res.data.user
       if(user.OTP_code === null){
         push('/auth/two-factor-auth');
-          return;
+        return;
       }
       console.log("userdata", res.data)
       const redirectTo = query.get('redirectTo');

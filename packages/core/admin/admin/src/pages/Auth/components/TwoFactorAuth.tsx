@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { Box, Button, Checkbox, Flex, Main, TextInput, Typography } from '@strapi/design-system';
+import { Box, Button, Checkbox, Flex, Main, TextInput, Typography,LinkButton } from '@strapi/design-system';
 import { Link } from '@strapi/design-system/v2';
 import { Form, translatedErrors, useQuery } from '@strapi/helper-plugin';
 import { Eye, EyeStriked } from '@strapi/icons';
@@ -42,9 +42,10 @@ const TwoFactorAuth = ({ children }: LoginProps) => {
 
   const { login } = useAuth('Login');
 
-  const handleLogin = async (body: Parameters<typeof login>[0]) => {
+  const handleLogin = async (body: Parameters<any>[0]) => {
     setApiError(undefined);
 
+    // @ts-ignore
     const res = await login(body);
 
     if ('error' in res) {
@@ -72,22 +73,10 @@ const TwoFactorAuth = ({ children }: LoginProps) => {
             <Logo />
             <Box paddingTop={6} paddingBottom={1}>
               <Typography variant="alpha" as="h1">
-                {formatMessage({
-                  id: 'Auth.form.welcome.title',
-                  defaultMessage: 'Welcome!',
-                })}
-              </Typography>
-              <p>2fa</p>
-            </Box>
-            <p>hello world</p>
-            <Box paddingBottom={7}>
-              <Typography variant="epsilon" textColor="neutral600">
-                {formatMessage({
-                  id: 'Auth.form.welcome.subtitle',
-                  defaultMessage: 'Log in to your Strapi account',
-                })}
+               Verify OTP
               </Typography>
             </Box>
+          
             {apiError ? (
               <Typography id="global-form-error" role="alert" tabIndex={-1} textColor="danger600">
                 {apiError}
@@ -97,14 +86,12 @@ const TwoFactorAuth = ({ children }: LoginProps) => {
           <Formik
             enableReinitialize
             initialValues={{
-              email: '',
-              password: '',
-              rememberMe: false,
+              otp: '',
             }}
             onSubmit={(values) => {
               handleLogin(values);
             }}
-            validationSchema={LOGIN_SCHEMA}
+         
             validateOnChange={false}
           >
             {({ values, errors, handleChange }) => (
@@ -112,78 +99,37 @@ const TwoFactorAuth = ({ children }: LoginProps) => {
                 <Flex direction="column" alignItems="stretch" gap={6}>
                   <TextInput
                     error={
-                      errors.email
+                      errors.otp
                         ? formatMessage({
-                            id: errors.email,
-                            defaultMessage: 'This value is required.',
+                            id: errors.otp,
+                            defaultMessage: 'Please enter OTP.',
                           })
                         : ''
                     }
-                    value={values.email}
+                    label={"OTP"}
+                    value={values.otp}
                     onChange={handleChange}
-                    label={formatMessage({ id: 'Auth.form.email.label', defaultMessage: 'Email' })}
-                    placeholder={formatMessage({
-                      id: 'Auth.form.email.placeholder',
-                      defaultMessage: 'kai@doe.com',
-                    })}
-                    name="email"
+                   
+                    placeholder={"Enter OTP"}
+                    name="otp"
                     required
                   />
-                  <PasswordInput
-                    error={
-                      errors.password
-                        ? formatMessage({
-                            id: errors.password,
-                            defaultMessage: 'This value is required.',
-                          })
-                        : ''
-                    }
-                    onChange={handleChange}
-                    value={values.password}
-                    label={formatMessage({
-                      id: 'global.password',
-                      defaultMessage: 'Password',
-                    })}
-                    name="password"
-                    type={passwordShown ? 'text' : 'password'}
-                    endAction={
-                      <FieldActionWrapper
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPasswordShown((prev) => !prev);
-                        }}
-                        label={formatMessage(
-                          passwordShown
-                            ? {
-                                id: 'Auth.form.password.show-password',
-                                defaultMessage: 'Show password',
-                              }
-                            : {
-                                id: 'Auth.form.password.hide-password',
-                                defaultMessage: 'Hide password',
-                              }
-                        )}
-                      >
-                        {passwordShown ? <Eye /> : <EyeStriked />}
-                      </FieldActionWrapper>
-                    }
-                    required
-                  />
-                  <Checkbox
-                    onValueChange={(checked) => {
-                      handleChange({ target: { value: checked, name: 'rememberMe' } });
-                    }}
-                    value={values.rememberMe}
-                    aria-label="rememberMe"
-                    name="rememberMe"
-                  >
-                    {formatMessage({
-                      id: 'Auth.form.rememberMe.label',
-                      defaultMessage: 'Remember me',
-                    })}
-                  </Checkbox>
+                  <Box paddingBottom={4}>
+                    <Flex justifyContent="space-between" alignItems="center">
+
+                      <Typography variant="epsilon" textColor="neutral600">
+                        Time Remaing 01:52
+                      </Typography>
+
+                      <LinkButton href="#" variant='secondary'>Resend OTP</LinkButton>
+
+
+                    </Flex>
+                  </Box>
+                  
+                    
                   <Button fullWidth type="submit">
-                    {formatMessage({ id: 'Auth.form.button.login', defaultMessage: 'Login' })}
+                   SUBMIT
                   </Button>
                 </Flex>
               </Form>
@@ -191,17 +137,7 @@ const TwoFactorAuth = ({ children }: LoginProps) => {
           </Formik>
           {children}
         </LayoutContent>
-        <Flex justifyContent="center">
-          <Box paddingTop={4}>
-            {/* @ts-expect-error – error with inferring the props from the as component */}
-            <Link as={NavLink} to="/auth/forgot-password">
-              {formatMessage({
-                id: 'Auth.link.forgot-password',
-                defaultMessage: 'Forgot your password?',
-              })}
-            </Link>
-          </Box>
-        </Flex>
+      
       </Main>
     </UnauthenticatedLayout>
   );
