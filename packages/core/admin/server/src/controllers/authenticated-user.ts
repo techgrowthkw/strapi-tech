@@ -24,8 +24,9 @@ export default {
 
     const { currentPassword, ...userInfo } = input;
 
+    let isValid = false;
     if (currentPassword && userInfo.password) {
-      const isValid = await authServer.validatePassword(currentPassword, ctx.state.user.password);
+      isValid = await authServer.validatePassword(currentPassword, ctx.state.user.password);
 
       if (!isValid) {
         // @ts-expect-error - refactor ctx bad request to take a second argument
@@ -36,6 +37,13 @@ export default {
     }
 
     const updatedUser = await userService.updateById(ctx.state.user.id, userInfo);
+
+    if (userInfo.password && isValid) {
+      // apply password policies
+      await authServer.applyPasswordPolicies(userInfo.password);
+      // save password history
+      await authServer.updatePasswordHistory(ctx.state.user, userInfo.password);
+    }
 
     ctx.body = {
       data: userService.sanitizeUser(updatedUser),

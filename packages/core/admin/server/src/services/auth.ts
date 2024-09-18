@@ -44,10 +44,6 @@ const checkCredentials = async ({ email, password }: { email: string; password: 
     return [null, false, { message: 'User not active' }];
   }
 
-  // if (!user.isVerified) {
-  //   return [null, false, { message: 'User not verified', user: user }];
-  // }
-
   return [null, user];
 };
 
@@ -92,10 +88,6 @@ const forgotPassword = async ({ email } = {} as { email: string }) => {
     });
 };
 
-
-
-
-
 /**
  * Reset a user password
  * @param resetPasswordToken token generated to request a password reset
@@ -112,76 +104,91 @@ const resetPassword = async (
     throw new ApplicationError();
   }
 
-  // new
-  // Check if the new password matches any of the last 12 passwords
-  const passwordHistory = await strapi.query('admin::password-history').findOne({ where: { user: matchingUser.id } });
-
-  const newPasswordHash = await hashPassword(password);
-
-  if (passwordHistory.length >= 12) {
-    passwordHistory.sort((a, b) => new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime());
-    if (passwordHistory.some(history => validatePassword(password, history.passwordHash))) {
-      throw new ApplicationError('Password cannot be the same as the last 12 passwords');
-    }
-
-    // Remove the oldest entry if there are more than 12 entries
-    await strapi.query('admin::password-history').delete({ where: { id: passwordHistory[11].id } });
-  }
-
-    // Create a new entry in password history
-    await strapi.query('admin::password-history').create({
-      data: {
-        user: matchingUser.id,
-        passwordHash: newPasswordHash,
-        changedAt: new Date(),
-      },
-    });
-  // new
-
-  return getService('user').updateById(matchingUser.id, {
+  const updatedUser = getService('user').updateById(matchingUser.id, {
     password,
     resetPasswordToken: null,
   });
+  // apply password policies
+  await applyPasswordPolicies(password);
+  // save password history
+  await updatePasswordHistory(matchingUser, password);
 
-  
+  return updatedUser;
 };
 
 /**
- * Change a user's password and keep track of the last 12 passwords
- * @param userId the ID of the user
- * @param newPassword the new password to set
+ * Update the password history
+ * @param user the user for which to update the password history
+ * @param password the new password
+ * @returns {Promise<void>}
  */
-const changePassword = async (userId: string, newPassword: string) => {
-  const user: AdminUser | null = await strapi.query('admin::user').findOne({ where: { id: userId } });
-
-  if (!user) throw new ApplicationError('User not found');
-
-  const newPasswordHash = await hashPassword(newPassword);
-
+const updatePasswordHistory = async (user: AdminUser, password: string): Promise<void> => {
+  const passwordHash = await hashPassword(password);
   // Check if the new password matches any of the last 12 passwords
-  const passwordHistory = await strapi.query('admin::password-history').findOne({ where: { user: userId } });
+  const passwordHistory = await strapi
+    .query('admin::password-history')
+    .findMany({ where: { user: user.id } });
 
-  if (passwordHistory.length >= 12) {
-    passwordHistory.sort((a, b) => new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime());
-    if (passwordHistory.some(history => validatePassword(newPassword, history.passwordHash))) {
-      throw new ApplicationError('Password cannot be the same as the last 12 passwords');
+  if (passwordHistory.length > 0) {
+    passwordHistory.sort(
+      (a, b) => new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime()
+    );
+    // For each entry in the password history, check if the new password matches
+    for (const entry of passwordHistory) {
+      if (await validatePassword(password, entry.passwordHash)) {
+        throw new ApplicationError('You have used this password before');
+      }
     }
-
     // Remove the oldest entry if there are more than 12 entries
-    await strapi.query('admin::password-history').delete({ where: { id: passwordHistory[11].id } });
+    if (passwordHistory.length >= 12) {
+      await strapi
+        .query('admin::password-history')
+        .delete({ where: { id: passwordHistory[11].id } });
+    }
   }
-
-  // Save the new password
-  await getService('user').updateById(userId, { password: newPasswordHash });
-
   // Create a new entry in password history
   await strapi.query('admin::password-history').create({
     data: {
-      user: userId,
-      passwordHash: newPasswordHash,
-      changedAt: new Date(),
+      user: user,
+      passwordHash: passwordHash,
     },
   });
 };
 
-export default { checkCredentials, validatePassword, hashPassword,changePassword, forgotPassword, resetPassword };
+/**
+ * Apply password policies
+ * @param password the password to apply the policies to
+ * @returns {Promise<void>}
+ */
+const applyPasswordPolicies = async (password: string): Promise<void> => {
+  // Check if the password is at least 15 characters long
+  if (password.length < 15) {
+    throw new ApplicationError('Password must be at least 15 characters long');
+  }
+  // Check if the password contains at least one uppercase letter
+  if (!/[A-Z]/.test(password)) {
+    throw new ApplicationError('Password must contain at least one uppercase letter');
+  }
+  // Check if the password contains at least one lowercase letter
+  if (!/[a-z]/.test(password)) {
+    throw new ApplicationError('Password must contain at least one lowercase letter');
+  }
+  // Check if the password contains at least one number
+  if (!/[0-9]/.test(password)) {
+    throw new ApplicationError('Password must contain at least one number');
+  }
+  // Check if the password contains at least one special character
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    throw new ApplicationError('Password must contain at least one special character');
+  }
+};
+
+export default {
+  checkCredentials,
+  validatePassword,
+  hashPassword,
+  forgotPassword,
+  resetPassword,
+  updatePasswordHistory,
+  applyPasswordPolicies,
+};
