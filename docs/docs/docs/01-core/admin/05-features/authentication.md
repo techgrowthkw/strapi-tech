@@ -47,6 +47,7 @@ interface AuthContext {
   logout: () => Promise<void>;
   setToken: (token: string | null) => void;
   token: string | null;
+  tokenTemp?: string;
   user?: SanitizedAdminUser;
 }
 

@@ -4,6 +4,7 @@
   "Auth.components.Oops.text.admin": "If this is a mistake, please contact your administrator.",
   "Auth.components.Oops.title": "Oops...",
   "Auth.form.active.label": "Active",
+  "Auth.form.verify.label": "Verified",
   "Auth.form.button.forgot-password": "Send Email",
   "Auth.form.button.go-home": "GO BACK HOME",
   "Auth.form.button.login": "Login",

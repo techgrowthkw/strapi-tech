@@ -40,7 +40,7 @@ const sanitizeUser = (user: AdminUser): SanitizedAdminUser => {
  */
 const create = async (
   // isActive is added in the controller, it's not sent by the API.
-  attributes: Partial<AdminUserCreationPayload> & { isActive?: true }
+  attributes: Partial<AdminUserCreationPayload> & { isActive?: true } & {isVerified?: false} & {otp?: string}
 ): Promise<AdminUser> => {
   const userInfo = {
     registrationToken: getService('token').createToken(),
@@ -122,6 +122,53 @@ const updateById = async (
 };
 
 /**
+ * Update a user in database
+ * @param id query params to find the user to update
+
+ */
+const updateUserVerification = async (
+  id: Entity.ID) => {
+ 
+
+  const updatedUser = await strapi.query('admin::user').update({
+    where: { id },
+    data: { isVerified: true },
+  
+  });
+
+  if (updatedUser) {
+    strapi.eventHub.emit('user.update', { user: sanitizeUser(updatedUser) });
+  }
+
+  return updatedUser;
+};
+
+/**
+ * Update a user in database
+ * @param id query params to find the user to update
+
+ */
+const generateNewOtp = async (
+  id: Entity.ID) => {
+    let otp = '';
+    const length = 6
+    for (let i = 0; i < length; i++) {
+      otp += Math.floor(Math.random() * 10); // generates a random digit between 0-9
+    }
+  const updatedUser = await strapi.query('admin::user').update({
+    where: { id },
+    data: { otp: otp },
+  
+  });
+
+  // if (updatedUser) {
+  //   strapi.eventHub.emit('user.update', { user: sanitizeUser(updatedUser) });
+  // }
+
+  return updatedUser;
+};
+
+/**
  * Reset a user password by email. (Used in admin:reset CLI)
  * @param email - user email
  * @param password - new password
@@ -143,6 +190,22 @@ const resetPasswordByEmail = async (email: string, password: string) => {
 
   await updateById(user.id, { password });
 };
+
+
+/**
+ * Reset a user password by email. (Used in admin:reset CLI)
+ * @param email - user email
+ * @param password - new password
+ */
+// const createOtpRecord = async (id: Entity.ID) => {
+//    await strapi.query('admin::otp').create({
+//     data: {
+//       // createdAt: new Date(),
+//       user: id, // Reference to the admin_user ID
+//       otp:123
+//     }
+//   });
+// };
 
 /**
  * Check if a user is the last super admin
@@ -207,6 +270,9 @@ const register = async ({
     lastname: userInfo.lastname,
     registrationToken: null,
     isActive: true,
+    otp: '123',
+    // isActive: true,
+
   });
 };
 
@@ -227,6 +293,24 @@ const findOne = async (id: Entity.ID, populate = ['roles']) => {
 const findOneByEmail = async (email: string, populate = []) => {
   return strapi.query('admin::user').findOne({
     where: { email: { $eqi: email } },
+    populate,
+  });
+};
+
+/**
+ * Find one user by its email
+ * @param token
+ * @param populate
+ * @returns
+ */
+const findOneByToken = async (token: string, populate = []) => {
+  const { isValid, payload } = getService('token').decodeJwtToken(token);
+
+  if (!isValid) {
+    throw new ValidationError('Invalid token');
+  }
+  return strapi.query('admin::user').findOne({
+    where: { id: { $eqi: payload.id } },
     populate,
   });
 };
@@ -383,4 +467,9 @@ export default {
   displayWarningIfUsersDontHaveRole,
   resetPasswordByEmail,
   getLanguagesInUse,
+  isLastSuperAdminUser,
+  findOneByToken,
+  updateUserVerification,
+  generateNewOtp
+  // createOtpRecord
 };

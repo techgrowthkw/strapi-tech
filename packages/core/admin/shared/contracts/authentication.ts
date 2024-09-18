@@ -15,10 +15,45 @@ export declare namespace Login {
   export interface Response {
     data: {
       token: string;
+      tokenTemp?: string;
       user: Omit<SanitizedAdminUser, 'permissions'>;
     };
     errors?: errors.ApplicationError | errors.NotImplementedError;
   }
+}
+
+
+/**
+ * /verifyOtp - verify user otp
+ */
+export declare namespace verifyOtp {
+  export interface Request {
+  
+    body: {
+      tempToken: string;
+      code: string;
+    };
+  }
+
+  export interface Response {
+    data: {
+      token: string;
+      user: Omit<SanitizedAdminUser, 'permissions'>;
+    };
+    errors?: errors.ApplicationError | errors.NotImplementedError;
+  }
+}
+
+export declare namespace resendOtp {
+  export interface Request {
+  
+    body: {
+      tempToken: string;
+      isEmail: boolean;
+    };
+  }
+
+  export interface Response {}
 }
 
 /**
@@ -74,6 +109,8 @@ export declare namespace Register {
     data: {
       token: string;
       user: Omit<SanitizedAdminUser, 'permissions'>;
+      record?: object,
+      tokenTemp?: string
     };
     errors?: errors.ApplicationError | errors.YupValidationError;
   }

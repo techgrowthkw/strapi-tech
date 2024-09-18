@@ -3,7 +3,7 @@ import * as React from 'react';
 import { auth } from '@strapi/helper-plugin';
 import { useHistory } from 'react-router-dom';
 
-import { Login } from '../../../shared/contracts/authentication';
+import { Login, verifyOtp } from '../../../shared/contracts/authentication';
 import { createContext } from '../components/Context';
 import { useTypedDispatch } from '../core/store/hooks';
 import { setLocale } from '../reducer';
@@ -12,6 +12,7 @@ import {
   useLoginMutation,
   useLogoutMutation,
   useRenewTokenMutation,
+  useVerifyOtpMutation,
 } from '../services/auth';
 
 import type { SanitizedAdminUser } from '../../../shared/contracts/shared';
@@ -21,6 +22,9 @@ interface AuthContextValue {
     body: Login.Request['body'] & { rememberMe: boolean }
   ) => Promise<Awaited<ReturnType<ReturnType<typeof useLoginMutation>[0]>>>;
   logout: () => Promise<void>;
+  // verifyOtp: (
+  //   body: verifyOtp.Request['body']
+  // ) => Promise<Awaited<ReturnType<ReturnType<typeof useVerifyOtpMutation>[0]>>>
   setToken: (token: string | null) => void;
   token: string | null;
   user?: SanitizedAdminUser;
@@ -62,6 +66,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loginMutation] = useLoginMutation();
   const [renewTokenMutation] = useRenewTokenMutation();
   const [logoutMutation] = useLogoutMutation();
+  const [otpMutation] = useVerifyOtpMutation()
 
   const clearStorage = React.useCallback(() => {
     localStorage.removeItem(STORAGE_KEYS.TOKEN);
@@ -153,6 +158,26 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     [loginMutation]
   );
 
+  // const verifyOtp = React.useCallback<AuthContextValue['verifyOtp']>(
+  //   async ({ ...body }) => {
+  //     const res = await otpMutation(body);
+
+  //     /**
+  //      * There will always be a `data` key in the response
+  //      * because if something fails, it will throw an error.
+  //      */
+  //     if ('data' in res) {
+  //       const { token } = res.data;
+
+  //       auth.setToken(token);
+  //       setToken(token);
+  //     }
+
+  //     return res;
+  //   },
+  //   [otpMutation]
+  // );verifyOtp={verifyOtp}
+
   const logout = React.useCallback(async () => {
     await logoutMutation();
     clearStorage();
@@ -160,7 +185,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   }, [clearStorage, logoutMutation, push]);
 
   return (
-    <Provider token={token} user={user} login={login} logout={logout} setToken={setToken}>
+    <Provider token={token} user={user} login={login} logout={logout} setToken={setToken} >
       {children}
     </Provider>
   );

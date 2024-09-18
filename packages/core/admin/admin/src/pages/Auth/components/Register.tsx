@@ -128,7 +128,7 @@ const Register = ({ hasAdmin }: RegisterProps) => {
     '/auth/:authType'
   );
   const {
-    _unstableFormatAPIError: formatAPIError,
+    _unstableFormatAPIError: formatAPIError, 
     _unstableFormatValidationErrors: formatValidationErrors,
   } = useAPIErrorHandler();
   const { setNpsSurveySettings } = useNpsSurveySettings();
@@ -165,7 +165,7 @@ const Register = ({ hasAdmin }: RegisterProps) => {
     if ('data' in res) {
       setToken(res.data.token);
 
-      const { roles } = res.data.user;
+      const { roles, isVerified } = res.data.user;
 
       if (roles) {
         const isUserSuperAdmin = roles.find(({ code }) => code === 'strapi-super-admin');
@@ -186,7 +186,12 @@ const Register = ({ hasAdmin }: RegisterProps) => {
           search: `?hasAdmin=${true}`,
         });
       } else {
-        push('/');
+        if(!isVerified){
+
+        }else{
+          push('/');
+        }
+      
       }
     } else {
       if (isBaseQueryError(res.error)) {
@@ -409,7 +414,7 @@ const Register = ({ hasAdmin }: RegisterProps) => {
                       hint={formatMessage({
                         id: 'Auth.form.password.hint',
                         defaultMessage:
-                          'Must be at least 8 characters, 1 uppercase, 1 lowercase & 1 number',
+                          'Must be at least 15 characters, 1 uppercase, 1 lowercase & 1 number & 1 special character',
                       })}
                       required
                       label={formatMessage({

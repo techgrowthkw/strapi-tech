@@ -27,15 +27,16 @@ export interface AdminUser extends Entity {
   resetPasswordToken?: string | null;
   registrationToken?: string | null;
   isActive: boolean;
+  isVerified?: boolean;
   roles: AdminRole[];
-  OTP_code?:string;
+  otp?:string;
   blocked: boolean;
   preferedLanguage?: string;
 }
 
 export type AdminUserCreationPayload = Omit<
   AdminUser,
-  keyof Entity | 'roles' | 'isActive' | 'blocked'
+  keyof Entity | 'roles' | 'isActive' | 'blocked' 
 > & {
   roles: TEntity.ID[];
 };

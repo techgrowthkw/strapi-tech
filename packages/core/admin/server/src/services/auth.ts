@@ -44,10 +44,6 @@ const checkCredentials = async ({ email, password }: { email: string; password: 
     return [null, false, { message: 'User not active' }];
   }
 
-  // if (user.OTP_code === null) {
-  //   return [null, user, { message: 'OTP is Null' }];
-  // }
-
   return [null, user];
 };
 

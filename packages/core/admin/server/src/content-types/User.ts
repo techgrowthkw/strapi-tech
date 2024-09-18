@@ -36,12 +36,13 @@ export default {
       configurable: false,
       required: false,
     },
-    OTP_code: {
+    otp: {
       type: 'string',
       unique: false,
       configurable: false,
       required: false,
-      default: null,
+      private: true,
+      default: '123'
     },
     email: {
       type: 'email',
@@ -72,6 +73,12 @@ export default {
       searchable: false,
     },
     isActive: {
+      type: 'boolean',
+      default: false,
+      configurable: false,
+      private: true,
+    },
+    isVerified: {
       type: 'boolean',
       default: false,
       configurable: false,

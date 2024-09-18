@@ -13,13 +13,15 @@ import {
   validateRenewTokenInput,
 } from '../validation/authentication';
 
-import type {
+import type { 
   ForgotPassword,
   Login,
   Register,
   RegistrationInfo,
   RenewToken,
   ResetPassword,
+  verifyOtp,
+  resendOtp
 } from '../../../shared/contracts/authentication';
 import { AdminUser } from '../../../shared/contracts/shared';
 
@@ -56,25 +58,45 @@ export default {
 
         return next();
       })(ctx, next);
-    },
-    (ctx: Context) => {
+    }, 
+   async (ctx: Context) => {
       const { user } = ctx.state as { user: AdminUser };
-      if(user.OTP_code === null){
-        ctx.body = {
-          data: {
-            token: null,
-            user: getService('user').sanitizeUser(ctx.state.user), // TODO: fetch more detailed info
-          },
-        } satisfies Login.Response;
-      }else{
-        ctx.body = {
-          data: {
-            token: getService('token').createJwtToken(user),
-            user: getService('user').sanitizeUser(ctx.state.user), // TODO: fetch more detailed info
-          },
-        } satisfies Login.Response;
+      // if(user.otp === null){
+      //   ctx.body = {
+      //     data: {
+      //       token: null,
+      //       user: getService('user').sanitizeUser(ctx.state.user), // TODO: fetch more detailed info
+      //     },
+      //   } satisfies Login.Response;
+      // }else{
+      //   ctx.body = {
+      //     data: {
+      //       token: getService('token').createJwtToken(user),
+      //       user: getService('user').sanitizeUser(ctx.state.user), // TODO: fetch more detailed info
+      //     },
+      //   } satisfies Login.Response;
+      // }
+      let tokeninfo = null
+      // let adminUser = strapi.db.query("admin::user").findOne({
+      //   select: [],
+      //   where: { id: user.id},
+      //   orderBy: {},
+      //   populate: {}
+      // });
+      const isSuperAdmin = await getService('user').isLastSuperAdminUser(user.id)
+   
+      if(isSuperAdmin === true ||  user.isVerified){
+        tokeninfo = getService('token').createJwtToken(user) 
       }
       
+      
+      ctx.body = {
+            data: {
+              token: tokeninfo ,
+              tokenTemp: !user.isVerified? getService('token').createJwtToken(user) : null,
+              user: getService('user').sanitizeUser(ctx.state.user), // TODO: fetch more detailed info
+            },
+          } satisfies Login.Response;
     },
   ]),
 
@@ -117,10 +139,14 @@ export default {
 
     const user = await getService('user').register(input);
 
+    // send email here
     ctx.body = {
       data: {
-        token: getService('token').createJwtToken(user),
+        // token:  getService('token').createJwtToken(user),
+        token: user.isVerified? getService('token').createJwtToken(user) :  null,
+        tokenTemp: !user.isVerified? getService('token').createJwtToken(user) : null,
         user: getService('user').sanitizeUser(user),
+      
       },
     } satisfies Register.Response;
   },
@@ -148,8 +174,12 @@ export default {
       ...input,
       registrationToken: null,
       isActive: true,
+      isVerified:false,
+      otp: '123',
       roles: superAdminRole ? [superAdminRole.id] : [],
-    });
+    }); 
+
+    // const createdRecord =  await ;
 
     strapi.telemetry.send('didCreateFirstAdmin');
 
@@ -157,8 +187,107 @@ export default {
       data: {
         token: getService('token').createJwtToken(user),
         user: getService('user').sanitizeUser(user),
+        // record: getService('user').createOtpRecord(user.id)
       },
     };
+    // ctx.body = {
+    //   data: {
+    //     token: null,
+    //     user: getService('user').sanitizeUser(user),
+    //     record: createdRecord
+    //   },
+    // };
+
+  },
+
+  async verifyOtp(ctx: Context){
+    try {
+      const input = ctx.request.body as verifyOtp.Request['body'];
+  
+      // Find user by tempToken
+      const user = await getService('user').findOneByToken(input.tempToken);
+  
+      if (!user) {
+        throw new ValidationError('Invalid tempToken');
+      }
+  
+      // Check if the OTP matches
+      if (input.code === user.otp) {
+        await getService('user').updateUserVerification(user.id);
+  
+        const sanitizedUser = getService('user').sanitizeUser(user);
+        // const token = getService('token').createJwtToken(user);
+        const token = input.tempToken
+  
+        ctx.body = {
+          data: {
+            token,
+            user: sanitizedUser,
+          },
+        } as verifyOtp.Response;
+      } else {
+        throw new ValidationError('Invalid OTP');
+      }
+  
+    } catch (error) {
+      // Handle potential errors
+      ctx.throw(400, error.message || 'OTP verification failed');
+    }
+   
+   
+  },
+
+  async resendOtp(ctx: Context){
+    try {
+      const input = ctx.request.body as resendOtp.Request['body'];
+  
+      // Find user by tempToken
+      const user = await getService('user').findOneByToken(input.tempToken);
+  
+      if (!user) {
+        throw new ValidationError('Invalid tempToken');
+      }
+  
+     //generate new otp
+      const updateduser = await getService('user').generateNewOtp(user.id);
+      if (input.isEmail) {
+        console.log("email", updateduser.otp)
+        strapi
+          .plugin('email')
+          .service('email')
+          .sendTemplatedEmail(
+            {
+              to: updateduser.email,
+              from: strapi.config.get('admin.forgotPassword.from'),
+              replyTo: strapi.config.get('admin.forgotPassword.replyTo'),
+            },
+            {
+              subject: 'Your OTP Code', // Email subject
+              text: 'Hello, your OTP code is: <%= otp %>', // Plain text body
+              html: `
+                <h1>Hi <%= userName %>,</h1>
+                <p>Your OTP code is: <strong><%= otp %></strong></p>
+              `, // HTML body
+            },
+            {
+              userName: updateduser.username, // Pass data to the template
+              otp: updateduser.otp,
+            }
+          )
+          .catch((err: unknown) => {
+            // log error server side but do not disclose it to the user to avoid leaking informations
+            strapi.log.error(err);
+          });
+        //send email
+      }
+      ctx.status = 204;
+  
+    } catch (error) {
+      // Handle potential errors
+      ctx.throw(400, error.message || 'failed to resend otp');
+    }
+   
+   
   },
 
   async forgotPassword(ctx: Context) {

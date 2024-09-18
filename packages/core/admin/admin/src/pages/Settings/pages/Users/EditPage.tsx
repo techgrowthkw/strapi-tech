@@ -49,10 +49,11 @@ import type { FormLayout } from '../../../../types/form';
 const EDIT_VALIDATION_SCHEMA = yup.object().shape({
   ...COMMON_USER_SCHEMA,
   isActive: yup.bool(),
+  isVerified: yup.bool(),
   roles: yup.array().min(1, translatedErrors.required).required(translatedErrors.required),
 });
 
-const fieldsToPick = ['email', 'firstname', 'lastname', 'username', 'isActive', 'roles'] as const;
+const fieldsToPick = ['email', 'firstname', 'lastname', 'username', 'isActive','isVerified', 'roles'] as const;
 
 /* -------------------------------------------------------------------------------------------------
  * EditPage
@@ -175,6 +176,7 @@ const EditPage = () => {
     roles: user.roles.map(({ id }) => id),
     password: '',
     confirmPassword: '',
+    // isVerified: user.isVerified || false,
   } satisfies InitialData;
 
   /**
@@ -184,7 +186,6 @@ const EditPage = () => {
     lockApp?.();
 
     const { confirmPassword, password, ...bodyRest } = body;
-
     const res = await updateUser({
       id,
       ...bodyRest,
@@ -458,6 +459,20 @@ const LAYOUT = [
         defaultMessage: 'Active',
       },
       name: 'isActive',
+      type: 'bool',
+      size: {
+        col: 6,
+        xs: 12,
+      },
+    },
+  ],
+  [
+    {
+      intlLabel: {
+        id: 'Auth.form.verify.label',
+        defaultMessage: 'Verified',
+      },
+      name: 'isVerified',
       type: 'bool',
       size: {
         col: 6,

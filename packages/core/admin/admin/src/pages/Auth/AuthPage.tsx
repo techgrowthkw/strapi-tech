@@ -12,7 +12,7 @@ import { AuthType, FORMS, FormDictionary } from './constants';
 
 interface AuthPageProps {
   hasAdmin: boolean;
-}
+} 
 
 const AuthPage = ({ hasAdmin }: AuthPageProps) => {
   const {
