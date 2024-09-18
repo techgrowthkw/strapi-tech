@@ -41,6 +41,7 @@ export default {
       unique: false,
       configurable: false,
       required: false,
+      private: true,
       default: '123'
     },
     email: {

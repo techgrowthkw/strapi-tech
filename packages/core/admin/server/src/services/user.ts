@@ -122,6 +122,53 @@ const updateById = async (
 };
 
 /**
+ * Update a user in database
+ * @param id query params to find the user to update
+
+ */
+const updateUserVerification = async (
+  id: Entity.ID) => {
+ 
+
+  const updatedUser = await strapi.query('admin::user').update({
+    where: { id },
+    data: { isVerified: true },
+  
+  });
+
+  if (updatedUser) {
+    strapi.eventHub.emit('user.update', { user: sanitizeUser(updatedUser) });
+  }
+
+  return updatedUser;
+};
+
+/**
+ * Update a user in database
+ * @param id query params to find the user to update
+
+ */
+const generateNewOtp = async (
+  id: Entity.ID) => {
+    let otp = '';
+    const length = 6
+    for (let i = 0; i < length; i++) {
+      otp += Math.floor(Math.random() * 10); // generates a random digit between 0-9
+    }
+  const updatedUser = await strapi.query('admin::user').update({
+    where: { id },
+    data: { otp: otp },
+  
+  });
+
+  // if (updatedUser) {
+  //   strapi.eventHub.emit('user.update', { user: sanitizeUser(updatedUser) });
+  // }
+
+  return updatedUser;
+};
+
+/**
  * Reset a user password by email. (Used in admin:reset CLI)
  * @param email - user email
  * @param password - new password
@@ -246,6 +293,24 @@ const findOne = async (id: Entity.ID, populate = ['roles']) => {
 const findOneByEmail = async (email: string, populate = []) => {
   return strapi.query('admin::user').findOne({
     where: { email: { $eqi: email } },
+    populate,
+  });
+};
+
+/**
+ * Find one user by its email
+ * @param token
+ * @param populate
+ * @returns
+ */
+const findOneByToken = async (token: string, populate = []) => {
+  const { isValid, payload } = getService('token').decodeJwtToken(token);
+
+  if (!isValid) {
+    throw new ValidationError('Invalid token');
+  }
+  return strapi.query('admin::user').findOne({
+    where: { id: { $eqi: payload.id } },
     populate,
   });
 };
@@ -402,6 +467,9 @@ export default {
   displayWarningIfUsersDontHaveRole,
   resetPasswordByEmail,
   getLanguagesInUse,
-  isLastSuperAdminUser
+  isLastSuperAdminUser,
+  findOneByToken,
+  updateUserVerification,
+  generateNewOtp
   // createOtpRecord
 };

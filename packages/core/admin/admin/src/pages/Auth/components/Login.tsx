@@ -67,10 +67,10 @@ const Login = ({ children }: LoginProps) => {
       const tokentemp = res.data.tokenTemp
       if(!user.isVerified){
         // otp req
-        push(`/auth/two-factor-auth?info=${tokentemp}`);
+        push(`/auth/two-factor-auth?temp=${tokentemp}`);
         return;
       }
-      console.log("userdata", res.data)
+      // console.log("userdata", res.data)
       const redirectTo = query.get('redirectTo');
       const redirectUrl = redirectTo ? decodeURIComponent(redirectTo) : '/';
 

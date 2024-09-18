@@ -14,7 +14,7 @@ const emailValidator = yup.string().email('Invalid email address').lowercase();
 
 const passwordValidator = yup
   .string()
-  .min(8, 'Password must be at least 8 characters long')
+  .min(15, 'Password must be at least 15 characters long')
   .matches(/[a-z]/, 'Password must contain at least one lowercase character')
   .matches(/[A-Z]/, 'Password must contain at least one uppercase character')
   .matches(/\d/, 'Password must contain at least one number');

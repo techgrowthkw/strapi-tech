@@ -16,6 +16,12 @@ export default [
   },
   {
     method: 'POST',
+    path: '/resendOtp',
+    handler: 'authentication.resendOtp',
+    config: { auth: false },
+  },
+  {
+    method: 'POST',
     path: '/renew-token',
     handler: 'authentication.renewToken',
     config: { auth: false },

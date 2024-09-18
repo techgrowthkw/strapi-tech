@@ -40,6 +40,7 @@ const userUpdateSchema = yup
     username: validators.username.nullable(),
     password: validators.password.notNull(),
     isActive: yup.bool().notNull(),
+    isVerified: yup.bool().notNull(),
     roles: validators.roles.min(1).notNull(),
   })
   .noUnknown();

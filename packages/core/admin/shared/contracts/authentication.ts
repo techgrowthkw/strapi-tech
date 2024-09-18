@@ -30,6 +30,7 @@ export declare namespace verifyOtp {
   export interface Request {
   
     body: {
+      tempToken: string;
       code: string;
     };
   }
@@ -41,6 +42,18 @@ export declare namespace verifyOtp {
     };
     errors?: errors.ApplicationError | errors.NotImplementedError;
   }
+}
+
+export declare namespace resendOtp {
+  export interface Request {
+  
+    body: {
+      tempToken: string;
+      isEmail: boolean;
+    };
+  }
+
+  export interface Response {}
 }
 
 /**

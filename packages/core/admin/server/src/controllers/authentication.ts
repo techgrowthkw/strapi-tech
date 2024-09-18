@@ -20,7 +20,8 @@ import type {
   RegistrationInfo,
   RenewToken,
   ResetPassword,
-  verifyOtp
+  verifyOtp,
+  resendOtp
 } from '../../../shared/contracts/authentication';
 import { AdminUser } from '../../../shared/contracts/shared';
 
@@ -200,18 +201,93 @@ export default {
   },
 
   async verifyOtp(ctx: Context){
-    const input = ctx.request.body as verifyOtp.Request['body'];
+    try {
+      const input = ctx.request.body as verifyOtp.Request['body'];
+  
+      // Find user by tempToken
+      const user = await getService('user').findOneByToken(input.tempToken);
+  
+      if (!user) {
+        throw new ValidationError('Invalid tempToken');
+      }
+  
+      // Check if the OTP matches
+      if (input.code === user.otp) {
+        await getService('user').updateUserVerification(user.id);
+  
+        const sanitizedUser = getService('user').sanitizeUser(user);
+        // const token = getService('token').createJwtToken(user);
+        const token = input.tempToken
+  
+        ctx.body = {
+          data: {
+            token,
+            user: sanitizedUser,
+          },
+        } as verifyOtp.Response;
+      } else {
+        throw new ValidationError('Invalid OTP');
+      }
+  
+    } catch (error) {
+      // Handle potential errors
+      ctx.throw(400, error.message || 'OTP verification failed');
+    }
+   
+   
+  },
 
-    await validateResetPasswordInput(input);
-
-    // const user = await getService('auth').resetPassword(input);
-
-    // ctx.body = {
-    //   data: {
-    //     token: getService('token').createJwtToken(user),
-    //     user: getService('user').sanitizeUser(user),
-    //   },
-    // } satisfies verifyOtp.Response;
+  async resendOtp(ctx: Context){
+    try {
+      const input = ctx.request.body as resendOtp.Request['body'];
+  
+      // Find user by tempToken
+      const user = await getService('user').findOneByToken(input.tempToken);
+  
+      if (!user) {
+        throw new ValidationError('Invalid tempToken');
+      }
+  
+     //generate new otp
+      const updateduser = await getService('user').generateNewOtp(user.id);
+      if (input.isEmail) {
+        console.log("email", updateduser.otp)
+        strapi
+          .plugin('email')
+          .service('email')
+          .sendTemplatedEmail(
+            {
+              to: updateduser.email,
+              from: strapi.config.get('admin.forgotPassword.from'),
+              replyTo: strapi.config.get('admin.forgotPassword.replyTo'),
+            },
+            {
+              subject: 'Your OTP Code', // Email subject
+              text: 'Hello, your OTP code is: <%= otp %>', // Plain text body
+              html: `
+                <h1>Hi <%= userName %>,</h1>
+                <p>Your OTP code is: <strong><%= otp %></strong></p>
+              `, // HTML body
+            },
+            {
+              userName: updateduser.username, // Pass data to the template
+              otp: updateduser.otp,
+            }
+          )
+          .catch((err: unknown) => {
+            // log error server side but do not disclose it to the user to avoid leaking informations
+            strapi.log.error(err);
+          });
+        //send email
+      }
+      ctx.status = 204;
+  
+    } catch (error) {
+      // Handle potential errors
+      ctx.throw(400, error.message || 'failed to resend otp');
+    }
+   
+   
   },
 
   async forgotPassword(ctx: Context) {
