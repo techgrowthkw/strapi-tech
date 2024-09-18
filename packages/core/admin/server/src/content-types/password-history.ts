@@ -1,7 +1,3 @@
-/**
- * Lifecycle callbacks for the `Role` model.
- */
-
 export default {
   collectionName: 'password_histories',
   info: {
@@ -12,7 +8,14 @@ export default {
     displayName: 'Password History',
   },
   options: {},
-  pluginOptions: {},
+  pluginOptions: {
+    'content-manager': {
+      visible: false,
+    },
+    'content-type-builder': {
+      visible: false,
+    },
+  },
   attributes: {
     user: {
       type: 'relation',
@@ -23,10 +26,12 @@ export default {
     passwordHash: {
       type: 'string',
       required: true,
+      configurable: false,
     },
     changedAt: {
       type: 'datetime',
       default: new Date(),
+      configurable: false,
     },
   },
 };

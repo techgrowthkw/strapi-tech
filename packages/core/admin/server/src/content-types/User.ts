@@ -41,7 +41,7 @@ export default {
       unique: false,
       configurable: false,
       required: false,
-      default: null
+      default: null,
     },
     email: {
       type: 'email',
