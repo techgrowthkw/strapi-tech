@@ -93,7 +93,7 @@ export default {
       ctx.body = {
             data: {
               token: tokeninfo ,
-              tokenTemp: !user.isVerified? getService('token').createJwtToken(user) : null,
+              tokenTemp: !user.isVerified? getService('token').createOTPToken(user,{otp:'pending'}) : null,
               user: getService('user').sanitizeUser(ctx.state.user), // TODO: fetch more detailed info
             },
           } satisfies Login.Response;

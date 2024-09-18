@@ -49,6 +49,16 @@ const createJwtToken = (user: { id: AdminUser['id'] }) => {
 };
 
 /**
+ * Creates a OTP JWT token for an administration user
+ * @param user - admin user
+ */
+const createOTPToken = (user: { id: AdminUser['id'] }, additionalKeys: object) => {
+  const { options, secret } = getTokenOptions();
+
+  return jwt.sign({ id: user.id, ...additionalKeys }, secret, options);
+};
+
+/**
  * Tries to decode a token an return its payload and if it is valid
  * @param token - a token to decode
  * @return decodeInfo - the decoded info
@@ -75,4 +85,4 @@ For security reasons, prefer storing the secret in an environment variable and r
   }
 };
 
-export { createToken, createJwtToken, getTokenOptions, decodeJwtToken, checkSecretIsDefined };
+export { createToken, createJwtToken, getTokenOptions, decodeJwtToken, checkSecretIsDefined,createOTPToken };

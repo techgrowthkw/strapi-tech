@@ -15,6 +15,7 @@ const defaultConfig = [
   'strapi::body',
   'strapi::favicon',
   'strapi::public',
+  'admin::otp-middleware'
 ];
 
 const requiredMiddlewares = [
@@ -25,6 +26,7 @@ const requiredMiddlewares = [
   'strapi::body',
   'strapi::public',
   'strapi::favicon',
+    'admin::otp-middleware'
 ];
 
 const middlewareConfigSchema = yup.array().of(
