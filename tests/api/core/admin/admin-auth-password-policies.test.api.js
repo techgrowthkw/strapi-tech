@@ -111,7 +111,7 @@ describe('Authenticated User Password Policies', () => {
       email: superAdmin.credentials.email,
       firstname: superAdmin.credentials.firstname,
       lastname: superAdmin.credentials.lastname,
-      password: 'password1234',
+      password: 'longPassword12356789@',
       currentPassword: superAdmin.credentials.password,
     };
     const res = await rq({

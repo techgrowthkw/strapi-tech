@@ -15,6 +15,7 @@ describe('Authenticated User Password History', () => {
 
   afterAll(async () => {
     await strapi.destroy();
+    jest.useRealTimers();
   });
   beforeEach(async () => {
     await strapi.db.query('admin::password-history').delete({
@@ -60,6 +61,7 @@ describe('Authenticated User Password History', () => {
   });
 
   test('Password history is limited to 12 entries', async () => {
+    jest.useFakeTimers();
     // get password history
     const queryRes = await strapi.db.query('admin::password-history').findMany();
     expect(queryRes.length).toBe(0);
@@ -73,8 +75,10 @@ describe('Authenticated User Password History', () => {
         password: hashedPassword,
       },
     });
-    // update password 14 times
+
     for (let i = 0; i < 14; i++) {
+      jest.advanceTimersByTime(24 * 60 * 60 * 1000); // todo: configure fake timers properly
+
       const input = {
         email: superAdmin.credentials.email,
         firstname: superAdmin.credentials.firstname,
@@ -87,12 +91,8 @@ describe('Authenticated User Password History', () => {
         method: 'PUT',
         body: input,
       });
-      // sleep for 2 seconds to increase the created_at value
-      // await new Promise((resolve) => setTimeout(resolve, 2000));
-      console.log(JSON.stringify(res.body));
       expect(res.statusCode).toBe(200);
     }
-
     // Check if the password is saved in the history table
     const queryResAfter = await strapi.db.query('admin::password-history').findMany();
 
