@@ -186,12 +186,10 @@ const Register = ({ hasAdmin }: RegisterProps) => {
           search: `?hasAdmin=${true}`,
         });
       } else {
-        if(!isVerified){
-
-        }else{
+        if(isVerified){
           push('/');
         }
-      
+       
       }
     } else {
       if (isBaseQueryError(res.error)) {
@@ -210,11 +208,11 @@ const Register = ({ hasAdmin }: RegisterProps) => {
   const handleRegisterUser = async (
     { news, ...body }: RegisterUser.Request['body'] & { news: boolean },
     setFormErrors: FormikHelpers<RegisterFormValues>['setErrors']
-  ) => {
+  ) => { 
     const res = await registerUser(body);
 
     if ('data' in res) {
-      setToken(res.data.token);
+      // setToken(res.data.token);
 
       if (news) {
         // Only enable EE survey if user accepted the newsletter

@@ -42,6 +42,7 @@ const Login = ({ children }: LoginProps) => {
 
   const { login } = useAuth('Login');
 
+
   const handleLogin = async (body: Parameters<typeof login>[0]) => {
     setApiError(undefined);
 
@@ -67,6 +68,7 @@ const Login = ({ children }: LoginProps) => {
       const tokentemp = res.data.tokenTemp
       if(!user.isVerified){
         // otp req
+        
         push(`/auth/two-factor-auth?temp=${tokentemp}`);
         return;
       }

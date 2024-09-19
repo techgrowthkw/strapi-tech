@@ -53,8 +53,10 @@ const ResetPassword = () => {
     const res = await resetPassword(body);
 
     if ('data' in res) {
-      setToken(res.data.token);
+      // setToken(res.data.token);
+      setToken(null);
       push('/');
+      
     }
   };
   /**

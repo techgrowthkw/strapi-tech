@@ -5,13 +5,14 @@ import type { AdminUser } from '../../../shared/contracts/shared';
 
 const defaultJwtOptions = { expiresIn: '30d' };
 
-export type TokenOptions = {
+export type TokenOptions = { 
   expiresIn?: string;
   [key: string]: unknown;
 };
 
 export type TokenPayload = {
   id: AdminUser['id'];
+  // otp: string
 };
 
 export type AdminAuthConfig = {
@@ -70,11 +71,38 @@ const decodeJwtToken = (
 
   try {
     const payload = jwt.verify(token, secret) as TokenPayload;
+    // if(payload.otp != 'pending'){
+    //   return { payload, isValid: true };
+    // }
+    // return { payload: null, isValid: false };
     return { payload, isValid: true };
+   
   } catch (err) {
     return { payload: null, isValid: false };
   }
 };
+
+/**
+ * Tries to decode a token an return its payload and if it is valid
+ * @param token - a token to decode
+ * @return decodeInfo - the decoded info
+ */
+// const decodeOTPToken = (
+//   token: string
+// ): { payload: TokenPayload; isValid: true } | { payload: null; isValid: false } => {
+//   const { secret } = getTokenOptions();
+
+//   try {
+//     const payload = jwt.verify(token, secret) as TokenPayload;
+//     if(payload.otp == 'pending'){
+//       return { payload, isValid: true };
+//     }
+//     return { payload: null, isValid: false };
+   
+//   } catch (err) {
+//     return { payload: null, isValid: false };
+//   }
+// };
 
 const checkSecretIsDefined = () => {
   if (strapi.config.serveAdminPanel && !strapi.config.get('admin.auth.secret')) {

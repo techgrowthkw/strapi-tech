@@ -159,6 +159,7 @@ export declare namespace ResetPassword {
     data: {
       token: string;
       user: Omit<SanitizedAdminUser, 'permissions'>;
+      tokenTemp?: string;
     };
   }
 }

@@ -61,39 +61,23 @@ export default {
     }, 
    async (ctx: Context) => {
       const { user } = ctx.state as { user: AdminUser };
-      // if(user.otp === null){
-      //   ctx.body = {
-      //     data: {
-      //       token: null,
-      //       user: getService('user').sanitizeUser(ctx.state.user), // TODO: fetch more detailed info
-      //     },
-      //   } satisfies Login.Response;
-      // }else{
-      //   ctx.body = {
-      //     data: {
-      //       token: getService('token').createJwtToken(user),
-      //       user: getService('user').sanitizeUser(ctx.state.user), // TODO: fetch more detailed info
-      //     },
-      //   } satisfies Login.Response;
-      // }
-      let tokeninfo = null
-      // let adminUser = strapi.db.query("admin::user").findOne({
-      //   select: [],
-      //   where: { id: user.id},
-      //   orderBy: {},
-      //   populate: {}
-      // });
-      const isSuperAdmin = await getService('user').isLastSuperAdminUser(user.id)
-   
-      if(isSuperAdmin === true ||  user.isVerified){
+  
+      let tokeninfo = ''
+     
+      // const isSuperAdmin = await getService('user').isLastSuperAdminUser(user.id)
+      const otp_token = getService('token').createOTPToken(user,{otp:'pending'})
+      if(user.isVerified){
         tokeninfo = getService('token').createJwtToken(user) 
+      }else{
+        await getService('user').updateById(user.id, {registrationToken: otp_token});
       }
-      
-      
+     
+      const token = !user.isVerified? otp_token :  tokeninfo 
+    
       ctx.body = {
             data: {
-              token: tokeninfo ,
-              tokenTemp: !user.isVerified? getService('token').createOTPToken(user,{otp:'pending'}) : null,
+              token: user.isVerified? tokeninfo : '',
+             tokenTemp:token,
               user: getService('user').sanitizeUser(ctx.state.user), // TODO: fetch more detailed info
             },
           } satisfies Login.Response;
@@ -138,13 +122,15 @@ export default {
     await validateRegistrationInput(input);
 
     const user = await getService('user').register(input);
+    const otp_token = getService('token').createOTPToken(user,{otp:'pending'})
 
-    // send email here
+    await getService('user').updateById(user.id, {registrationToken: otp_token});
+    //user.isVerified? getService('token').createJwtToken(user) 
     ctx.body = {
       data: {
         // token:  getService('token').createJwtToken(user),
-        token: user.isVerified? getService('token').createJwtToken(user) :  null,
-        tokenTemp: !user.isVerified? getService('token').createJwtToken(user) : null,
+        token: '',
+        tokenTemp: otp_token ,
         user: getService('user').sanitizeUser(user),
       
       },
@@ -170,16 +156,21 @@ export default {
       );
     }
 
+    // generate otp
+    // let otp = '';
+    // const length = 6
+    // for (let i = 0; i < length; i++) {
+    //   otp += Math.floor(Math.random() * 10);
+    // }
     const user = await getService('user').create({
       ...input,
       registrationToken: null,
       isActive: true,
       isVerified:false,
-      otp: '123',
+      // otp: otp,
       roles: superAdminRole ? [superAdminRole.id] : [],
     }); 
 
-    // const createdRecord =  await ;
 
     strapi.telemetry.send('didCreateFirstAdmin');
 
@@ -187,16 +178,10 @@ export default {
       data: {
         token: getService('token').createJwtToken(user),
         user: getService('user').sanitizeUser(user),
-        // record: getService('user').createOtpRecord(user.id)
+    
       },
     };
-    // ctx.body = {
-    //   data: {
-    //     token: null,
-    //     user: getService('user').sanitizeUser(user),
-    //     record: createdRecord
-    //   },
-    // };
+  
 
   },
 
@@ -206,19 +191,23 @@ export default {
   
       // Find user by tempToken
       const user = await getService('user').findOneByToken(input.tempToken);
+      
+      if(user.registrationToken != input.tempToken){
+        throw new ValidationError('Invalid OTP');
+      }
   
       if (!user) {
         throw new ValidationError('Invalid tempToken');
       }
   
       // Check if the OTP matches
-      if (input.code === user.otp) {
+      if (input.code === user.otp ) {
         await getService('user').updateUserVerification(user.id);
   
         const sanitizedUser = getService('user').sanitizeUser(user);
-        // const token = getService('token').createJwtToken(user);
-        const token = input.tempToken
-  
+        const token = getService('token').createJwtToken(user);
+        // const token = input.tempToken
+        await getService('user').updateById(user.id, {registrationToken: null});
         ctx.body = {
           data: {
             token,
@@ -231,6 +220,7 @@ export default {
   
     } catch (error) {
       // Handle potential errors
+      // @ts-ignore
       ctx.throw(400, error.message || 'OTP verification failed');
     }
    
@@ -279,11 +269,15 @@ export default {
             strapi.log.error(err);
           });
         //send email
+      }else{
+        await getService('user').updateById(user.id, {registrationToken: null});
+        throw new ValidationError('OTP Expired');
       }
       ctx.status = 204;
   
     } catch (error) {
       // Handle potential errors
+      // @ts-ignore
       ctx.throw(400, error.message || 'failed to resend otp');
     }
    
@@ -304,19 +298,29 @@ export default {
     const input = ctx.request.body as ResetPassword.Request['body'];
 
     await validateResetPasswordInput(input);
-
+    
     const user = await getService('auth').resetPassword(input);
-
+    const otp_token = getService('token').createOTPToken(user,{otp:'pending'})
+    await getService('user').updateById(user.id, {registrationToken: otp_token});
+    // ctx.body = {
+    //   data: {
+    //     token: user.isVerified? getService('token').createJwtToken(user) :  '',
+    //     tokenTemp: !user.isVerified? getService('token').createOTPToken(user,{otp:'pending'})  : '',
+    //     user: getService('user').sanitizeUser(user),
+    //   },
+    // } satisfies ResetPassword.Response;
     ctx.body = {
       data: {
-        token: getService('token').createJwtToken(user),
+        token: '',
+        tokenTemp: otp_token,
         user: getService('user').sanitizeUser(user),
       },
     } satisfies ResetPassword.Response;
   },
 
-  logout(ctx: Context) {
+  async logout(ctx: Context) {
     const sanitizedUser = getService('user').sanitizeUser(ctx.state.user);
+    await getService('user').disableUserVerification(sanitizedUser.id)
     strapi.eventHub.emit('admin.logout', { user: sanitizedUser });
     ctx.body = { data: {} };
   },

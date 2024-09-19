@@ -143,6 +143,25 @@ const updateUserVerification = async (
   return updatedUser;
 };
 
+
+
+const disableUserVerification = async (
+  id: Entity.ID) => {
+ 
+
+  const updatedUser = await strapi.query('admin::user').update({
+    where: { id },
+    data: { isVerified: false },
+  
+  });
+
+  if (updatedUser) {
+    strapi.eventHub.emit('user.update', { user: sanitizeUser(updatedUser) });
+  }
+
+  return updatedUser;
+};
+
 /**
  * Update a user in database
  * @param id query params to find the user to update
@@ -264,13 +283,18 @@ const register = async ({
     throw new ValidationError('Invalid registration info');
   }
 
+  let otp = '';
+  const length = 6
+  for (let i = 0; i < length; i++) {
+    otp += Math.floor(Math.random() * 10);
+  }
   return getService('user').updateById(matchingUser.id, {
     password: userInfo.password,
     firstname: userInfo.firstname,
     lastname: userInfo.lastname,
     registrationToken: null,
     isActive: true,
-    otp: '123',
+    otp: otp,
     // isActive: true,
 
   });
@@ -470,6 +494,7 @@ export default {
   isLastSuperAdminUser,
   findOneByToken,
   updateUserVerification,
-  generateNewOtp
+  generateNewOtp,
+  disableUserVerification
   // createOtpRecord
 };

@@ -466,20 +466,20 @@ const LAYOUT = [
       },
     },
   ],
-  [
-    {
-      intlLabel: {
-        id: 'Auth.form.verify.label',
-        defaultMessage: 'Verified',
-      },
-      name: 'isVerified',
-      type: 'bool',
-      size: {
-        col: 6,
-        xs: 12,
-      },
-    },
-  ],
+  // [
+  //   {
+  //     intlLabel: {
+  //       id: 'Auth.form.verify.label',
+  //       defaultMessage: 'Verified',
+  //     },
+  //     name: 'isVerified',
+  //     type: 'bool',
+  //     size: {
+  //       col: 6,
+  //       xs: 12,
+  //     },
+  //   },
+  // ],
 ] satisfies FormLayout[][];
 
 const ProtectedEditPage = () => {
