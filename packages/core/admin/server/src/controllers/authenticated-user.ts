@@ -34,15 +34,15 @@ export default {
           currentPassword: ['Invalid credentials'],
         });
       }
+      // apply password policies
+      await authServer.applyPasswordPolicies(ctx.state.user, userInfo.password);
     }
 
     const updatedUser = await userService.updateById(ctx.state.user.id, userInfo);
 
     if (userInfo.password && isValid) {
-      // apply password policies
-      await authServer.applyPasswordPolicies(userInfo.password);
       // save password history
-      await authServer.updatePasswordHistory(ctx.state.user, userInfo.password);
+      await authServer.updatePasswordHistory(updatedUser, userInfo.password);
     }
 
     ctx.body = {
