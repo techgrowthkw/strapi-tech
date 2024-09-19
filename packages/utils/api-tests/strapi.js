@@ -10,7 +10,7 @@ const superAdminCredentials = {
   email: 'admin@strapi.io',
   firstname: 'admin',
   lastname: 'admin',
-  password: 'Password123',
+  password: 'longPassword12356789@',
 };
 
 const superAdminLoginInfo = _.pick(superAdminCredentials, ['email', 'password']);
