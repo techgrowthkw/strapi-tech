@@ -13,6 +13,7 @@ const getActionFromProvider = (actionId: string) => {
 };
 
 export const email = yup.string().email().lowercase();
+export const phoneNumber = yup.string();
 
 export const firstname = yup.string().trim().min(1);
 
@@ -200,6 +201,7 @@ export const updatePermissions = yup
 
 export default {
   email,
+  phoneNumber,
   firstname,
   lastname,
   username,

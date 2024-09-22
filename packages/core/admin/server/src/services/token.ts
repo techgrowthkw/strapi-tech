@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import type { AdminUser } from '../../../shared/contracts/shared';
 
 const defaultJwtOptions = { expiresIn: '30d' };
+const defaultJwtOTPOptions = { expiresIn: '20m' };
 
 export type TokenOptions = { 
   expiresIn?: string;
@@ -32,6 +33,27 @@ const getTokenOptions = () => {
   };
 };
 
+const generateRadomNumber = () => {
+  let otp = '';
+  const length = 6
+  for (let i = 0; i < length; i++) {
+    otp += Math.floor(Math.random() * 10); 
+  }
+  return otp
+}
+const getOTPTokenOptions = () => {
+  const { options, secret } = strapi.config.get<AdminAuthConfig>(
+    'admin.auth',
+    {} as AdminAuthConfig
+  );
+
+  return {
+    secret,
+    options: _.merge(defaultJwtOTPOptions, options),
+  };
+};
+
+
 /**
  * Create a random token
  */
@@ -54,7 +76,7 @@ const createJwtToken = (user: { id: AdminUser['id'] }) => {
  * @param user - admin user
  */
 const createOTPToken = (user: { id: AdminUser['id'] }, additionalKeys: object) => {
-  const { options, secret } = getTokenOptions();
+  const { options, secret } = getOTPTokenOptions();
 
   return jwt.sign({ id: user.id, ...additionalKeys }, secret, options);
 };
@@ -71,10 +93,7 @@ const decodeJwtToken = (
 
   try {
     const payload = jwt.verify(token, secret) as TokenPayload;
-    // if(payload.otp != 'pending'){
-    //   return { payload, isValid: true };
-    // }
-    // return { payload: null, isValid: false };
+  
     return { payload, isValid: true };
    
   } catch (err) {
@@ -82,27 +101,8 @@ const decodeJwtToken = (
   }
 };
 
-/**
- * Tries to decode a token an return its payload and if it is valid
- * @param token - a token to decode
- * @return decodeInfo - the decoded info
- */
-// const decodeOTPToken = (
-//   token: string
-// ): { payload: TokenPayload; isValid: true } | { payload: null; isValid: false } => {
-//   const { secret } = getTokenOptions();
 
-//   try {
-//     const payload = jwt.verify(token, secret) as TokenPayload;
-//     if(payload.otp == 'pending'){
-//       return { payload, isValid: true };
-//     }
-//     return { payload: null, isValid: false };
-   
-//   } catch (err) {
-//     return { payload: null, isValid: false };
-//   }
-// };
+
 
 const checkSecretIsDefined = () => {
   if (strapi.config.serveAdminPanel && !strapi.config.get('admin.auth.secret')) {
@@ -113,4 +113,4 @@ For security reasons, prefer storing the secret in an environment variable and r
   }
 };
 
-export { createToken, createJwtToken, getTokenOptions, decodeJwtToken, checkSecretIsDefined,createOTPToken };
+export { createToken, createJwtToken, getTokenOptions, decodeJwtToken,generateRadomNumber, checkSecretIsDefined,createOTPToken };

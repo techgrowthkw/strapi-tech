@@ -31,6 +31,7 @@ export default {
       'firstname',
       'lastname',
       'email',
+      'phoneNumber',
       'roles',
       'preferedLanguage',
     ]);

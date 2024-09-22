@@ -8,6 +8,7 @@ import {
   type RegistrationInfo,
   type verifyOtp,
   type resendOtp,
+  type checkOtpExp,
   ForgotPassword,
 } from '../../../shared/contracts/authentication';
 import { GetProviders, IsSSOLocked } from '../../../shared/contracts/providers';
@@ -84,6 +85,13 @@ const authService = adminApi.injectEndpoints({
     resendOtp: builder.mutation<resendOtp.Response, resendOtp.Request['body']>({
       query: (body) => ({
         url: '/admin/resendOtp',
+        method: 'POST',
+        data: body,
+      }),
+    }),
+    checkOtpExp: builder.mutation<checkOtpExp.Response, checkOtpExp.Request['body']>({
+      query: (body) => ({
+        url: '/admin/checkOtpExp',
         method: 'POST',
         data: body,
       }),
@@ -202,6 +210,7 @@ const {
   useLogoutMutation,
   useVerifyOtpMutation,
   useResendOtpMutation,
+  useCheckOtpExpMutation,
   useUpdateMeMutation,
   useResetPasswordMutation,
   useRegisterAdminMutation,
@@ -222,6 +231,7 @@ export {
   useLogoutMutation,
   useVerifyOtpMutation,
   useResendOtpMutation,
+  useCheckOtpExpMutation,
   useUpdateMeMutation,
   useResetPasswordMutation,
   useRegisterAdminMutation,

@@ -10,6 +10,7 @@ import { useIntl } from 'react-intl';
 import { NavLink, useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import * as yup from 'yup';
+
 import { isBaseQueryError } from '../../../utils/baseQuery';
 import {
   useGetRegistrationInfoQuery,
@@ -25,7 +26,8 @@ import {
 } from '../../../layouts/UnauthenticatedLayout';
 import {
   useVerifyOtpMutation,
-  useResendOtpMutation
+  useResendOtpMutation,
+  useCheckOtpExpMutation
 } from '../../../services/auth';
 
 const OTP_SCHEMA = yup.object().shape({
@@ -37,9 +39,11 @@ interface TwoFactoProps {
   hasAdmin?: boolean;
 }
 
+
+
 const TwoFactorAuth = ({ hasAdmin }: TwoFactoProps) => {
   const [apiError, setApiError] = React.useState<string>();
-  const [apiSuccess, setApiSuccess] = React.useState<string>();
+  const [apiSuccess, setApiSuccess] = React.useState<string>('OTP code has been sent vis SMS');
   const [verify, setVerify] = React.useState<boolean>(false);
 
   const { formatMessage } = useIntl();
@@ -52,6 +56,7 @@ const TwoFactorAuth = ({ hasAdmin }: TwoFactoProps) => {
   } = useAPIErrorHandler();
   const [verifyOtp] = useVerifyOtpMutation();
   const [resendOtp] = useResendOtpMutation()
+  const [chechExp] = useCheckOtpExpMutation()
   // const duration = 1800;
   const duration = 60;
   const tempToken = query.get('temp');
@@ -82,15 +87,32 @@ const TwoFactorAuth = ({ hasAdmin }: TwoFactoProps) => {
     };
   }, [timeRemaining]);
 
+
+
   const { data: userInfo, error } = useGetRegistrationInfoQuery(tempToken as string, {
     skip: !tempToken,
   });
   React.useEffect(() => {
-    if (error || !tempToken ) {
+   
+    if (error || !tempToken) {
    
       push(`/auth/login`);
     }
-  }, [error, formatAPIError, push ]);
+   
+   ;
+  }, [error, formatAPIError, push,tempToken ]);
+
+  // React.useEffect(() => {
+
+  //   const checkToken = async () => {
+  //     const token = await isTokenExpired(tempToken || '') 
+  //     if (token) {
+  //       push(`/auth/login`);
+  //     }
+  //   };
+  //   checkToken();
+  
+  // }, [tempToken]);
 
   const resetTimer = () => {
     if (intervalRef.current) {
@@ -129,6 +151,23 @@ const TwoFactorAuth = ({ hasAdmin }: TwoFactoProps) => {
       },2000)
 
     }
+  };
+
+
+  const isTokenExpired = async (token: string) => {
+    // const jwt = require('jsonwebtoken');Your session has expired. Please log in again.
+    const vals = { token: token }
+    const res = await chechExp(vals)
+    if ('error' in res) {
+     //Your session has expired. Please log in again.
+      return true;
+
+    } 
+     
+    return false
+
+    
+    
   };
 
 
@@ -252,7 +291,7 @@ const TwoFactorAuth = ({ hasAdmin }: TwoFactoProps) => {
                             Time Remaing {formatTime(timeRemaining)}
                           </Typography>
 
-                          <Button  variant='secondary' onClick={handleButtonResend}>Send OTP</Button>
+                          <Button  variant='secondary' onClick={handleButtonResend}>Resend OTP</Button>
 
 
                         </Flex>

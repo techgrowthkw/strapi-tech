@@ -22,6 +22,14 @@ export declare namespace Login {
   }
 }
 
+export declare namespace checkOtpExp{
+  export interface Request {
+    body: {
+      token: string;
+    };
+  }
+  export interface Response {}
+}
 
 /**
  * /verifyOtp - verify user otp
@@ -89,6 +97,7 @@ export declare namespace RegistrationInfo {
       email?: string;
       firstname?: string;
       lastname?: string;
+      phoneNumber?: string;
     };
     errors?: errors.ApplicationError | errors.ValidationError<'Invalid registrationToken'>;
   }

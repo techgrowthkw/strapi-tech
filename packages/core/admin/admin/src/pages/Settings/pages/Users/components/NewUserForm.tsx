@@ -273,6 +273,7 @@ interface InitialData {
   firstname?: string;
   lastname?: string;
   email?: string;
+  phoneNumber?: string;
   roles?: Entity.ID[];
   useSSORegistration?: boolean;
 }
@@ -281,6 +282,7 @@ const FORM_INITIAL_VALUES = {
   firstname: '',
   lastname: '',
   email: '',
+  phoneNumber:'',
   roles: [],
 };
 
@@ -340,6 +342,23 @@ const FORM_LAYOUT = [
       },
       required: true,
     },
+    {
+      intlLabel: {
+        id: 'Auth.form.phone.label',
+        defaultMessage: 'Phone Number',
+      },
+      name: 'phoneNumber',
+      placeholder: {
+        id: 'Auth.form.phone.placeholder',
+        defaultMessage: '92211413',
+      },
+      type: 'text',
+      size: {
+        col: 6,
+        xs: 12,
+      },
+      required: true,
+    },
   ],
 ] satisfies FormLayout[][];
 
@@ -347,6 +366,7 @@ const FORM_SCHEMA = yup.object().shape({
   firstname: yup.string().trim().required(translatedErrors.required),
   lastname: yup.string(),
   email: yup.string().email(translatedErrors.email).required(translatedErrors.required),
+  phoneNumber: yup.string().required(translatedErrors.required),
   roles: yup.array().min(1, translatedErrors.required).required(translatedErrors.required),
 });
 

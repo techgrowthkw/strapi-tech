@@ -62,6 +62,10 @@ const create = async (
   return createdUser;
 };
 
+const sendSms = (otp: string) =>{
+
+}
+
 /**
  * Update a user in database
  * @param id query params to find the user to update
@@ -169,11 +173,8 @@ const disableUserVerification = async (
  */
 const generateNewOtp = async (
   id: Entity.ID) => {
-    let otp = '';
-    const length = 6
-    for (let i = 0; i < length; i++) {
-      otp += Math.floor(Math.random() * 10); // generates a random digit between 0-9
-    }
+    const otp =   getService('token').generateRadomNumber()
+   
   const updatedUser = await strapi.query('admin::user').update({
     where: { id },
     data: { otp: otp },
@@ -261,7 +262,7 @@ const findRegistrationInfo = async (
     return undefined;
   }
 
-  return _.pick(user, ['email', 'firstname', 'lastname']);
+  return _.pick(user, ['email','phoneNumber', 'firstname', 'lastname']);
 };
 
 /**
@@ -283,11 +284,8 @@ const register = async ({
     throw new ValidationError('Invalid registration info');
   }
 
-  let otp = '';
-  const length = 6
-  for (let i = 0; i < length; i++) {
-    otp += Math.floor(Math.random() * 10);
-  }
+ 
+  const otp =   getService('token').generateRadomNumber()
   return getService('user').updateById(matchingUser.id, {
     password: userInfo.password,
     firstname: userInfo.firstname,
@@ -495,6 +493,7 @@ export default {
   findOneByToken,
   updateUserVerification,
   generateNewOtp,
-  disableUserVerification
+  disableUserVerification,
+  sendSms
   // createOtpRecord
 };

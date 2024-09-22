@@ -9,6 +9,7 @@ const COMMON_USER_SCHEMA = {
   lastname: yup.string(),
   email: yup.string().email(translatedErrors.email).lowercase().required(translatedErrors.required),
   username: yup.string().nullable(),
+  phoneNumber: yup.string().trim().required(translatedErrors.required),
   password: yup
     .string()
     .min(8, translatedErrors.minLength)

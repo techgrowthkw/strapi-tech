@@ -1,11 +1,12 @@
 import { isUndefined } from 'lodash/fp';
 import { yup, validateYupSchema } from '@strapi/utils';
-import validators from './common-validators';
+import validators, { phoneNumber } from './common-validators';
 
 const userCreationSchema = yup
   .object()
   .shape({
     email: validators.email.required(),
+    phoneNumber:validators.phoneNumber.required(),
     firstname: validators.firstname.required(),
     lastname: validators.lastname,
     roles: validators.roles.min(1),
@@ -17,6 +18,7 @@ const profileUpdateSchema = yup
   .object()
   .shape({
     email: validators.email.notNull(),
+    phoneNumber:validators.phoneNumber.required(),
     firstname: validators.firstname.notNull(),
     lastname: validators.lastname.nullable(),
     username: validators.username.nullable(),
@@ -35,6 +37,7 @@ const userUpdateSchema = yup
   .object()
   .shape({
     email: validators.email.notNull(),
+    phoneNumber: validators.phoneNumber.notNull(),
     firstname: validators.firstname.notNull(),
     lastname: validators.lastname.nullable(),
     username: validators.username.nullable(),

@@ -107,6 +107,7 @@ interface RegisterFormValues {
   firstname: string;
   lastname: string;
   email: string;
+  phoneNumber : string;
   password: string;
   confirmPassword: string;
   registrationToken: string | undefined;
@@ -282,6 +283,7 @@ const Register = ({ hasAdmin }: RegisterProps) => {
               firstname: userInfo?.firstname || '',
               lastname: userInfo?.lastname || '',
               email: userInfo?.email || '',
+              phoneNumber: userInfo?.phoneNumber || '',
               password: '',
               confirmPassword: '',
               registrationToken: registrationToken || undefined,
@@ -305,6 +307,7 @@ const Register = ({ hasAdmin }: RegisterProps) => {
                       'registrationToken',
                       'confirmPassword',
                       'email',
+                      'phoneNumber',
                       'news',
                     ]),
                     registrationToken: normalizedData.registrationToken,
@@ -327,7 +330,7 @@ const Register = ({ hasAdmin }: RegisterProps) => {
               setSubmitCount(submitCount + 1);
             }
           }}
-          validateOnChange={true}
+          validateOnChange={false}
         >
           {({ values, errors, handleChange }) => {
             return (
@@ -378,6 +381,21 @@ const Register = ({ hasAdmin }: RegisterProps) => {
                         defaultMessage: 'Email',
                       })}
                       type="email"
+                    />
+                     <TextInput
+                      name="phoneNumber"
+                      disabled={!isAdminRegistration}
+                      value={values.phoneNumber}
+                      onChange={handleChange}
+                      error={
+                        errors.phoneNumber ? formatMessage(errors.phoneNumber as MessageDescriptor) : undefined
+                      }
+                      required
+                      label={formatMessage({
+                        id: 'Auth.form.phone.label',
+                        defaultMessage: 'Phone Number',
+                      })}
+                
                     />
                     <PasswordInput
                       name="password"
@@ -526,6 +544,7 @@ interface RegisterFormValues {
   firstname: string;
   lastname: string;
   email: string;
+  phoneNumber: string;
   password: string;
   confirmPassword: string;
   registrationToken: string | undefined;
@@ -564,6 +583,7 @@ function normalizeData(data: RegisterFormValues) {
       firstname: string;
       lastname: string | undefined;
       email: string;
+      phoneNumber: string;
       password: string;
       confirmPassword: string;
       registrationToken: string | undefined;

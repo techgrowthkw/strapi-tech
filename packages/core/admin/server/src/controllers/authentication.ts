@@ -19,6 +19,7 @@ import type {
   Register,
   RegistrationInfo,
   RenewToken,
+  checkOtpExp,
   ResetPassword,
   verifyOtp,
   resendOtp
@@ -69,7 +70,13 @@ export default {
       if(user.isVerified){
         tokeninfo = getService('token').createJwtToken(user) 
       }else{
-        await getService('user').updateById(user.id, {registrationToken: otp_token});
+        const otp =   getService('token').generateRadomNumber()
+       
+      
+        //send sms
+        getService('user').sendSms(otp)
+        console.log("otp",otp)
+        await getService('user').updateById(user.id, {registrationToken: otp_token, otp:otp});
       }
      
       const token = !user.isVerified? otp_token :  tokeninfo 
@@ -100,6 +107,17 @@ export default {
         token: getService('token').createJwtToken({ id: payload.id }),
       },
     } satisfies RenewToken.Response;
+  },
+
+  async checkOtpExp(ctx: Context){
+    const { token } = ctx.request.body as checkOtpExp.Request['body'];
+
+    const { isValid } = getService('token').decodeJwtToken(token);
+    if (!isValid) {
+      throw new ValidationError('Invalid token');
+    }
+
+    ctx.status = 204;
   },
 
   async registrationInfo(ctx: Context) {
@@ -149,6 +167,7 @@ export default {
     }
 
     const superAdminRole = await getService('role').getSuperAdmin();
+    
 
     if (!superAdminRole) {
       throw new ApplicationError(
@@ -156,12 +175,7 @@ export default {
       );
     }
 
-    // generate otp
-    // let otp = '';
-    // const length = 6
-    // for (let i = 0; i < length; i++) {
-    //   otp += Math.floor(Math.random() * 10);
-    // }
+
     const user = await getService('user').create({
       ...input,
       registrationToken: null,
@@ -170,6 +184,8 @@ export default {
       // otp: otp,
       roles: superAdminRole ? [superAdminRole.id] : [],
     }); 
+
+    
 
 
     strapi.telemetry.send('didCreateFirstAdmin');
@@ -239,35 +255,37 @@ export default {
       }
   
      //generate new otp
+     //user.phoneNumber
       const updateduser = await getService('user').generateNewOtp(user.id);
       if (input.isEmail) {
-        console.log("email", updateduser.otp)
-        strapi
-          .plugin('email')
-          .service('email')
-          .sendTemplatedEmail(
-            {
-              to: updateduser.email,
-              from: strapi.config.get('admin.forgotPassword.from'),
-              replyTo: strapi.config.get('admin.forgotPassword.replyTo'),
-            },
-            {
-              subject: 'Your OTP Code', // Email subject
-              text: 'Hello, your OTP code is: <%= otp %>', // Plain text body
-              html: `
-                <h1>Hi <%= userName %>,</h1>
-                <p>Your OTP code is: <strong><%= otp %></strong></p>
-              `, // HTML body
-            },
-            {
-              userName: updateduser.username, // Pass data to the template
-              otp: updateduser.otp,
-            }
-          )
-          .catch((err: unknown) => {
-            // log error server side but do not disclose it to the user to avoid leaking informations
-            strapi.log.error(err);
-          });
+        console.log("sms", updateduser.otp)
+        getService('user').sendSms(updateduser.otp)
+        // strapi
+        //   .plugin('email')
+        //   .service('email')
+        //   .sendTemplatedEmail(
+        //     {
+        //       to: updateduser.email,
+        //       from: strapi.config.get('admin.forgotPassword.from'),
+        //       replyTo: strapi.config.get('admin.forgotPassword.replyTo'),
+        //     },
+        //     {
+        //       subject: 'Your OTP Code', // Email subject
+        //       text: 'Hello, your OTP code is: <%= otp %>', // Plain text body
+        //       html: `
+        //         <h1>Hi <%= userName %>,</h1>
+        //         <p>Your OTP code is: <strong><%= otp %></strong></p>
+        //       `, // HTML body
+        //     },
+        //     {
+        //       userName: updateduser.username, // Pass data to the template
+        //       otp: updateduser.otp,
+        //     }
+        //   )
+        //   .catch((err: unknown) => {
+        //     // log error server side but do not disclose it to the user to avoid leaking informations
+        //     strapi.log.error(err);
+        //   });
         //send email
       }else{
         await getService('user').updateById(user.id, {registrationToken: null});

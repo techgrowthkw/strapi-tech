@@ -12,13 +12,22 @@ export default [
     method: 'POST',
     path: '/verifyOtp',
     handler: 'authentication.verifyOtp',
+    config: { auth: false,
+     },
+  },
+  {
+    method: 'POST',
+    path: '/checkOtpExp',
+    handler: 'authentication.checkOtpExp',
     config: { auth: false },
   },
   {
     method: 'POST',
     path: '/resendOtp',
     handler: 'authentication.resendOtp',
-    config: { auth: false },
+    config: { auth: false,
+      middlewares: ['admin::rateLimitOtp']
+     },
   },
   {
     method: 'POST',

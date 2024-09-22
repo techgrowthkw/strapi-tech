@@ -23,6 +23,7 @@ export interface AdminUser extends Entity {
   lastname?: string;
   username?: string;
   email?: string;
+  phoneNumber?: string;
   password?: string;
   resetPasswordToken?: string | null;
   registrationToken?: string | null;

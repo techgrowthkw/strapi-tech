@@ -52,6 +52,16 @@ export default {
       unique: true,
       private: true,
     },
+    phoneNumber: {
+      type: 'string',
+      minLength: 10,
+      configurable: false,
+      required: true,
+      unique: true,
+      private: true,
+      maxLength: 15,
+      regex: /^[0-9]{10,15}$/,
+    },
     password: {
       type: 'password',
       minLength: 6,

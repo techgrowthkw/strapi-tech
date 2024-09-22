@@ -24,6 +24,7 @@ export declare namespace UpdateMe {
     password?: string;
     currentPassword?: string;
     email?: string;
+    phoneNumber?: string;
     firstname?: string;
     lastname?: string;
     username?: string;

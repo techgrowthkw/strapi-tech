@@ -53,7 +53,7 @@ const EDIT_VALIDATION_SCHEMA = yup.object().shape({
   roles: yup.array().min(1, translatedErrors.required).required(translatedErrors.required),
 });
 
-const fieldsToPick = ['email', 'firstname', 'lastname', 'username', 'isActive','isVerified', 'roles'] as const;
+const fieldsToPick = ['email', 'firstname', 'lastname', 'username','phoneNumber', 'isActive','isVerified', 'roles'] as const;
 
 /* -------------------------------------------------------------------------------------------------
  * EditPage
@@ -401,6 +401,23 @@ const LAYOUT = [
         defaultMessage: 'e.g. kai.doe@strapi.io',
       },
       type: 'email',
+      size: {
+        col: 6,
+        xs: 12,
+      },
+      required: true,
+    },
+    {
+      intlLabel: {
+        id: 'Auth.form.phone.label',
+        defaultMessage: 'phone Number',
+      },
+      name: 'phoneNumber',
+      placeholder: {
+        id: 'Auth.form.phone.placeholder',
+        defaultMessage: '91122513',
+      },
+      type: 'text',
       size: {
         col: 6,
         xs: 12,
