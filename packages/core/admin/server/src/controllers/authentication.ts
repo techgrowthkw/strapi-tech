@@ -72,11 +72,9 @@ export default {
       }else{
         const otp =   getService('token').generateRadomNumber()
        
-      
-        //send sms
-        getService('user').sendSms(otp)
-        console.log("otp",otp)
-        await getService('user').updateById(user.id, {registrationToken: otp_token, otp:otp});
+       const userUpdated =  await getService('user').updateById(user.id, {registrationToken: otp_token, otp:otp});
+
+        getService('user').sendSms(otp, userUpdated.phoneNumber)
       }
      
       const token = !user.isVerified? otp_token :  tokeninfo 
@@ -258,8 +256,8 @@ export default {
      //user.phoneNumber
       const updateduser = await getService('user').generateNewOtp(user.id);
       if (input.isEmail) {
-        console.log("sms", updateduser.otp)
-        getService('user').sendSms(updateduser.otp)
+        // console.log("sms", updateduser.otp)
+        getService('user').sendSms(updateduser.otp, updateduser.phoneNumber)
         // strapi
         //   .plugin('email')
         //   .service('email')

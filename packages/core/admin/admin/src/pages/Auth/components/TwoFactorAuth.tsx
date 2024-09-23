@@ -61,6 +61,7 @@ const TwoFactorAuth = ({ hasAdmin }: TwoFactoProps) => {
   const duration = 60;
   const tempToken = query.get('temp');
   const [timeRemaining, setTimeRemaining] = React.useState<number>(duration);
+  const [resendBtnStatus, setResendBtnStatus] = React.useState<boolean>(true);
   const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
   const { setToken } = useAuth('Register');
  
@@ -69,7 +70,8 @@ const TwoFactorAuth = ({ hasAdmin }: TwoFactoProps) => {
     // If timeRemaining reaches 0, stop the countdown
     if (timeRemaining <= 0) {
       clearInterval(intervalRef.current!);
-      handleResend(false)
+      // handleResend(false)
+      setResendBtnStatus(false)
       // push('/');
       return;
     }
@@ -115,6 +117,7 @@ const TwoFactorAuth = ({ hasAdmin }: TwoFactoProps) => {
   // }, [tempToken]);
 
   const resetTimer = () => {
+    setResendBtnStatus(true)
     if (intervalRef.current) {
       clearInterval(intervalRef.current); // Clear the existing interval
     }
@@ -184,6 +187,7 @@ const TwoFactorAuth = ({ hasAdmin }: TwoFactoProps) => {
       // setApiError(message);
     } else {
       if(isTimeUp){
+       
         resetTimer()
         setApiSuccess('otp sent successfully');
       }
@@ -291,7 +295,7 @@ const TwoFactorAuth = ({ hasAdmin }: TwoFactoProps) => {
                             Time Remaing {formatTime(timeRemaining)}
                           </Typography>
 
-                          <Button  variant='secondary' onClick={handleButtonResend}>Resend OTP</Button>
+                          <Button disabled={resendBtnStatus}  variant='secondary' onClick={handleButtonResend}>Resend OTP</Button>
 
 
                         </Flex>

@@ -4,6 +4,7 @@ import { defaults } from 'lodash/fp';
 import { stringIncludes, errors } from '@strapi/utils';
 import { Entity } from '@strapi/types';
 import { createUser, hasSuperAdminRole } from '../domain/user';
+import axios, { AxiosResponse, AxiosError } from 'axios';
 import type {
   AdminUser,
   AdminRole,
@@ -16,7 +17,7 @@ import type {
 import { password as passwordValidator } from '../validation/common-validators';
 import { getService } from '../utils';
 import constants from './constants';
-
+import dotenv from 'dotenv';
 const { SUPER_ADMIN_CODE } = constants;
 
 const { ValidationError } = errors;
@@ -33,7 +34,7 @@ const sanitizeUser = (user: AdminUser): SanitizedAdminUser => {
     roles: user.roles && user.roles.map(sanitizeUserRoles),
   };
 };
-
+dotenv.config();
 /**
  * Create and save a user in database
  * @param attributes A partial user object
@@ -62,8 +63,37 @@ const create = async (
   return createdUser;
 };
 
-const sendSms = (otp: string) =>{
+const sendSms = (otp: string,phone: string | undefined) =>{
+  // console.log("otp", otp,phone)
+  if (phone != undefined || phone != '') {
+  
+    const postData = {
+      username: process.env.SMS_USERNAME,
+      password: process.env.SMS_PASSWORD,
+      sender: process.env.SMS_SENDER,
+      mobile: phone,
+      lang: '1',
+      test: '0',
+      message: `Your otp code ${otp}`
+    };
 
+    const url = process.env.SMS_API_URL
+    console.log("otp", otp)
+    // axios.post(`${url}/API/send/`, postData)
+    //   .then(response => {
+    //     // Handle success
+    //     console.log('Response data:', response.data);
+    //   })
+    //   .catch(error => {
+    //     // Handle error
+    //     console.error('Error sending SMS:', error.message);
+    //   });
+  }else{
+    throw new ValidationError('no phone number exist for this user');
+  }
+
+ 
+ 
 }
 
 /**
