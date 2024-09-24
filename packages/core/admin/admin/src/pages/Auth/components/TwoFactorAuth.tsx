@@ -43,7 +43,7 @@ interface TwoFactoProps {
 
 const TwoFactorAuth = ({ hasAdmin }: TwoFactoProps) => {
   const [apiError, setApiError] = React.useState<string>();
-  const [apiSuccess, setApiSuccess] = React.useState<string>('OTP code has been sent vis SMS');
+  const [apiSuccess, setApiSuccess] = React.useState<string>('OTP code has been sent via SMS');
   const [verify, setVerify] = React.useState<boolean>(false);
 
   const { formatMessage } = useIntl();

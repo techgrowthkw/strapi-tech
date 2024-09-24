@@ -109,7 +109,8 @@ const sendSms = (otp: string, phone: string | undefined) => {
   axios.post(`${url}/API/send/`, postData)
     .then(response => {
 
-      console.log('SMS sent successfully. Response data:', response.data);
+      // console.log('SMS sent successfully. Response data:', response.data);
+      console.log('SMS sent successfully.');
     })
     .catch(error => {
       // Handle error
