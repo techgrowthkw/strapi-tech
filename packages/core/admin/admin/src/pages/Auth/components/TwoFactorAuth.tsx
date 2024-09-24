@@ -70,7 +70,7 @@ const TwoFactorAuth = ({ hasAdmin }: TwoFactoProps) => {
     // If timeRemaining reaches 0, stop the countdown
     if (timeRemaining <= 0) {
       clearInterval(intervalRef.current!);
-      // handleResend(false)
+      handleResend(false)
       setResendBtnStatus(false)
       // push('/');
       return;
@@ -104,17 +104,26 @@ const TwoFactorAuth = ({ hasAdmin }: TwoFactoProps) => {
    ;
   }, [error, formatAPIError, push,tempToken ]);
 
-  // React.useEffect(() => {
-
-  //   const checkToken = async () => {
-  //     const token = await isTokenExpired(tempToken || '') 
-  //     if (token) {
-  //       push(`/auth/login`);
-  //     }
-  //   };
-  //   checkToken();
+  React.useEffect(() => {
+    // Define a function to check token expiration
+    const checkToken = async () => {
+      const token = await isTokenExpired(tempToken) ; // Check if the token is expired
+      if (token) {
+        const message = 'OTP Expired';
+        push(`/auth/oops?info=${encodeURIComponent(message)}`); // Redirect on expiration
+        return;
+      }
+    };
   
-  // }, [tempToken]);
+    // Set interval to run the check every 5 seconds (5000ms)
+    const intervalId = setInterval(() => {
+      checkToken();
+    }, 5000);
+  
+    // Clear the interval when the component unmounts
+    return () => clearInterval(intervalId);
+  
+  }, [tempToken, push]);
 
   const resetTimer = () => {
     setResendBtnStatus(true)
@@ -157,8 +166,11 @@ const TwoFactorAuth = ({ hasAdmin }: TwoFactoProps) => {
   };
 
 
-  const isTokenExpired = async (token: string) => {
+  const isTokenExpired = async (token: string | null) => {
     // const jwt = require('jsonwebtoken');Your session has expired. Please log in again.
+    if(!token){
+      return false
+    }
     const vals = { token: token }
     const res = await chechExp(vals)
     if ('error' in res) {

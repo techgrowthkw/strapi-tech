@@ -109,9 +109,16 @@ export default {
 
   async checkOtpExp(ctx: Context){
     const { token } = ctx.request.body as checkOtpExp.Request['body'];
-
+    
+    const user = await getService('user').findOneByToken(token);
+   
+    if (!user) {
+      throw new ValidationError('Invalid tempToken');
+    }
     const { isValid } = getService('token').decodeJwtToken(token);
+    // console.log("token", isValid, payload)
     if (!isValid) {
+      await getService('user').updateById(user.id, {registrationToken: null});
       throw new ValidationError('Invalid token');
     }
 
@@ -207,7 +214,9 @@ export default {
       const user = await getService('user').findOneByToken(input.tempToken);
       
       if(user.registrationToken != input.tempToken){
+        await getService('user').updateById(user.id, {registrationToken: null});
         throw new ValidationError('Invalid OTP');
+
       }
   
       if (!user) {
@@ -229,10 +238,11 @@ export default {
           },
         } as verifyOtp.Response;
       } else {
+        await getService('user').updateById(user.id, {registrationToken: null});
         throw new ValidationError('Invalid OTP');
       }
   
-    } catch (error) {
+    }  catch (error)  {
       // Handle potential errors
       // @ts-ignore
       ctx.throw(400, error.message || 'OTP verification failed');
@@ -251,9 +261,6 @@ export default {
       if (!user) {
         throw new ValidationError('Invalid tempToken');
       }
-  
-     //generate new otp
-     //user.phoneNumber
       const updateduser = await getService('user').generateNewOtp(user.id);
       if (input.isEmail) {
         // console.log("sms", updateduser.otp)
@@ -286,8 +293,10 @@ export default {
         //   });
         //send email
       }else{
-        await getService('user').updateById(user.id, {registrationToken: null});
-        throw new ValidationError('OTP Expired');
+        const otp =   getService('token').generateRadomNumber()
+        await getService('user').updateById(user.id, {otp:otp});
+        // await getService('user').updateById(user.id, {registrationToken: null});
+        // throw new ValidationError('OTP Expired');
       }
       ctx.status = 204;
   

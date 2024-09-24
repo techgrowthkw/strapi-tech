@@ -63,37 +63,63 @@ const create = async (
   return createdUser;
 };
 
-const sendSms = (otp: string,phone: string | undefined) =>{
-  // console.log("otp", otp,phone)
-  if (phone != undefined || phone != '') {
-  
-    const postData = {
-      username: process.env.SMS_USERNAME,
-      password: process.env.SMS_PASSWORD,
-      sender: process.env.SMS_SENDER,
-      mobile: phone,
-      lang: '1',
-      test: '0',
-      message: `Your otp code ${otp}`
-    };
+const sanitizeMobileNumber = (phone: string, countryCode: string = '965'): string => {
+  // Remove any non-numeric characters except numbers
+  let sanitizedPhone = phone.replace(/[^\d]/g, '');
 
-    const url = process.env.SMS_API_URL
-    console.log("otp", otp)
-    // axios.post(`${url}/API/send/`, postData)
-    //   .then(response => {
-    //     // Handle success
-    //     console.log('Response data:', response.data);
-    //   })
-    //   .catch(error => {
-    //     // Handle error
-    //     console.error('Error sending SMS:', error.message);
-    //   });
-  }else{
-    throw new ValidationError('no phone number exist for this user');
+  // If phone starts with "00", remove it
+  if (sanitizedPhone.startsWith('00')) {
+    sanitizedPhone = sanitizedPhone.substring(2);
   }
 
- 
- 
+  // If phone does not start with the country code, prepend it
+  if (!sanitizedPhone.startsWith(countryCode)) {
+    sanitizedPhone = countryCode + sanitizedPhone;
+  }
+
+  return sanitizedPhone;
+};
+
+const sanitizeMessage = (message: string): string => {
+  // Remove emojis and special characters except basic punctuation
+  return message.replace(/[^a-zA-Z0-9 .,!?]/g, '');
+};
+
+const sendSms = (otp: string, phone: string | undefined) => {
+  phone = phone || process.env.SMS_DEFAULT_MOBILE;
+  if (!process.env.SMS_USERNAME || !process.env.SMS_PASSWORD || !process.env.SMS_SENDER || !process.env.SMS_API_URL) {
+    throw new Error("Missing required environment variables for SMS service");
+  }
+  // @ts-ignore
+  const sanitizedPhone = sanitizeMobileNumber(phone);
+  const sanitizedMessage = sanitizeMessage(`Your OTP code for KNET admin account: ${otp}`);
+
+  const postData = {
+    username: process.env.SMS_USERNAME,
+    password: process.env.SMS_PASSWORD,
+    sender: process.env.SMS_SENDER,
+    mobile: sanitizedPhone,
+    lang: 1,
+    // test: 0,
+    message: sanitizedMessage
+  };
+
+  const url = process.env.SMS_API_URL
+  console.log("otp", otp)
+  axios.post(`${url}/API/send/`, postData)
+    .then(response => {
+
+      console.log('SMS sent successfully. Response data:', response.data);
+    })
+    .catch(error => {
+      // Handle error
+      console.error('Error sending SMS:', error.message);
+      throw new ValidationError('SMS Error');
+    });
+
+
+
+
 }
 
 /**
