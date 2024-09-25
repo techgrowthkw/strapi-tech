@@ -101,7 +101,7 @@ const HomePageCE = () => {
                             defaultMessage: 'Welcome on board!',
                           })}
                     </Typography>
-                    <WordWrap textColor="neutral600" variant="epsilon">
+                    {/* <WordWrap textColor="neutral600" variant="epsilon">
                       {hasAlreadyCreatedContentTypes
                         ? formatMessage({
                             id: 'app.components.HomePage.welcomeBlock.content.again',
@@ -113,8 +113,8 @@ const HomePageCE = () => {
                             defaultMessage:
                               'Congrats! You are logged as the first administrator. To discover the powerful features provided by Strapi, we recommend you to create your first Content type!',
                           })}
-                    </WordWrap>
-                    {hasAlreadyCreatedContentTypes ? (
+                    </WordWrap> */}
+                    {/* {hasAlreadyCreatedContentTypes ? (
                       <Link isExternal href="https://strapi.io/blog">
                         {formatMessage({
                           id: 'app.components.HomePage.button.blog',
@@ -128,20 +128,20 @@ const HomePageCE = () => {
                           defaultMessage: 'Create your first Content type',
                         })}
                       </Button>
-                    )}
+                    )} */}
                   </Flex>
                 </Box>
               </div>
             </GridItem>
           </Grid>
-          <Grid gap={6}>
+          {/* <Grid gap={6}>
             <GridItem col={8} s={12}>
               {showGuidedTour ? <GuidedTourHomepage /> : <ContentBlocks />}
             </GridItem>
             <GridItem col={4} s={12}>
               <SocialLinks />
             </GridItem>
-          </Grid>
+          </Grid> */}
         </Box>
       </Main>
     </Layout>

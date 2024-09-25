@@ -58,7 +58,7 @@ const TwoFactorAuth = ({ hasAdmin }: TwoFactoProps) => {
   const [resendOtp] = useResendOtpMutation()
   const [chechExp] = useCheckOtpExpMutation()
   // const duration = 1800;
-  const duration = 60;
+  const duration = 5 * 60;
   const tempToken = query.get('temp');
   const [timeRemaining, setTimeRemaining] = React.useState<number>(duration);
   const [resendBtnStatus, setResendBtnStatus] = React.useState<boolean>(true);
