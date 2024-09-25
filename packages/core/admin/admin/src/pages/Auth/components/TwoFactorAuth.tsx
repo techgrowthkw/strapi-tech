@@ -57,10 +57,14 @@ const TwoFactorAuth = ({ hasAdmin }: TwoFactoProps) => {
   const [verifyOtp] = useVerifyOtpMutation();
   const [resendOtp] = useResendOtpMutation()
   const [chechExp] = useCheckOtpExpMutation()
-  // const duration = 1800;
+  
   const duration = 5 * 60;
+ 
   const tempToken = query.get('temp');
-  const [timeRemaining, setTimeRemaining] = React.useState<number>(duration);
+  const [timeRemaining, setTimeRemaining] = React.useState<number>(()=>{
+    const savedTime = localStorage.getItem('timeRemaining');
+    return savedTime ? JSON.parse(savedTime) : duration; // 5 minutes
+  });
   const [resendBtnStatus, setResendBtnStatus] = React.useState<boolean>(true);
   const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
   const { setToken } = useAuth('Register');
@@ -78,7 +82,14 @@ const TwoFactorAuth = ({ hasAdmin }: TwoFactoProps) => {
 
     // Update the countdown every second
     intervalRef.current = setInterval(() => {
-      setTimeRemaining(prevTime => prevTime - 1);
+      setTimeRemaining(prevTime => {
+        const newTime = prevTime - 1;
+
+        // Store the new time in localStorage
+        localStorage.setItem('timeRemaining', JSON.stringify(newTime));
+
+        return newTime;
+      });
     }, 1000);
 
     // Cleanup interval on component unmount
@@ -87,6 +98,13 @@ const TwoFactorAuth = ({ hasAdmin }: TwoFactoProps) => {
         clearInterval(intervalRef.current);
       }
     };
+  }, [timeRemaining]);
+
+
+  React.useEffect(() => {
+    if (timeRemaining <= 0) {
+      localStorage.removeItem('timeRemaining');
+    }
   }, [timeRemaining]);
 
 

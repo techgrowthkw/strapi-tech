@@ -47,7 +47,7 @@ const Login = ({ children }: LoginProps) => {
     setApiError(undefined);
 
     const res = await login(body);
-
+    localStorage.removeItem('timeRemaining');
     if ('error' in res) {
       const message = res.error.message ?? 'Something went wrong';
 
@@ -56,11 +56,7 @@ const Login = ({ children }: LoginProps) => {
         return;
       }
 
-      // if (camelCase(message).toLowerCase() === 'usernotverified') {
-
-      //   push(`/auth/two-factor-auth?token=1`);
-      //   return;
-      // }
+  
 
       setApiError(message);
     } else {
@@ -68,7 +64,7 @@ const Login = ({ children }: LoginProps) => {
       const tokentemp = res.data.tokenTemp
       if(!user.isVerified){
         // otp req
-        
+       
         push(`/auth/two-factor-auth?temp=${tokentemp}`);
         return;
       }
